@@ -1,0 +1,60 @@
+                            Spooky Maze 1.0
+
+Spooky Maze is a remake of the PSX/Net Yaroze game "Haunted Maze" which
+appeared on several demo disks that came bundled with Playstation magazines.
+It's similar to Pacman, only more free-form and with zombies (hence, spooky).
+
+It was developed by B_Lizzard (Alex Ferguson) and is released under the
+terms of the MIT license. It uses SDL, SDL_image and, optionally, SDL_mixer.
+
+                               Building
+
+Just type 'make'. If you want to cross-compile/have a weird compiler, just
+set CC, CFLAGS and LDFLAGS beforehand. Most environments have this set to
+some sane setting, though. Make sure you have the development packages for
+SDL and SDL_mixer (if you want sound) before you build.
+
+                               Playing
+
+Use the arrow keys to move your player around. Gather all "goodies" in the
+level whilst avoiding zombies to open the door to the next level. You lose
+a life if a zombie touches you or if you run out of time.
+
+                                Levels
+
+The game builds its levels out of text files in "data/levels", which are
+chosen randomly each new stage. The rules for building a level are these:
+
+  * Make sure you have set 40 characters horizontally and 30 vertically.
+    the program will probably die if you put more characters than that.
+
+  * A 'w' represents walls, a period ('.') represents a floor. Spaces are
+    not parsed, they're just there for readability.
+
+  * Tiles marked 'x' are unwalkable by zombies. Mainly used for corridors
+    in entrances and exits.
+
+  * Make sure you add two 'd' characters on both left and right sides.
+    These are your entrances and exits.
+
+  * Name your level "level-number", with "number" being one number higher
+    than the last one. It probably won't be loaded if you don't. You will
+    also need to modify NUM_LEVELS in "include/levels.h".
+
+  * Levels are randomly mirrored and flipped for that extra randomness,
+    so your level won't look the same each time you load it. Probably.
+
+  * No-one is going to read this because no-one's going to actually make
+    any levels, amirite?
+
+                               Graphics
+
+The font file maps the ASCII table, with major numbers (multiples of 10)
+mapped as rows and minor number mapped as elements in these rows. We ignore
+the first three rows and start from the exclamation mark which has a value
+of 33 and go on from there. So the lower-case 'a', which has an ASCII value
+of 97 is on row 7, element number 7. The width and height of the glyphs is
+inferred from the width and the height of the font image.
+
+                             That is all.
+                                Enjoy!
