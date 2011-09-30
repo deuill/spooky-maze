@@ -5,11 +5,11 @@
 #define SCREEN_H     480
 #define SCREEN_DEPTH 0
 
-#define TILE_SIZE 50 /* Size of tiles (walls, floors, etc.) in level. */
-#define ENTITY_SIZE (TILE_SIZE - (TILE_SIZE / 4)) /* Size of player and zombie rects. */
+#define TILE_SIZE 50 /* Size of tiles (walls, floors, etc.) in pixels. */
+#define ENTITY_SIZE (TILE_SIZE - (TILE_SIZE / 4)) /* Size of player and zombie rects in pixels. */
 
 #define LEVEL_W 40 /* Width and height */
-#define LEVEL_H 30 /* of the level. */
+#define LEVEL_H 30 /* of the level in tiles. */
 
 /* Change DATADIR if you plan on installing the game with the binary and
  * data folder in seperate locations. Empty (relative path) by default. */
