@@ -4,10 +4,11 @@
 
 #include "game.h"
 #include "graphics.h"
+#include "levels.h"
 #include "player.h"
 #include "zombie.h"
 
-int find_path(struct npc *zombie, char level[LEVEL_H][LEVEL_W], struct node *path)
+int find_path(struct npc *zombie, char level[LEVEL_H][LEVEL_W])
 {
 	int x, y;
 	int position, i;
@@ -31,33 +32,33 @@ int find_path(struct npc *zombie, char level[LEVEL_H][LEVEL_W], struct node *pat
 		for (y = current_node->y - 1; y <= current_node->y + 1; y++)
 		for (x = current_node->x - 1; x <= current_node->x + 1; x++, position++) {
 			/* Check if the node is a wall. */
-			if ((level[y][x] == 'w') || (level[y][x] == 'x') || (level[y][x] == 'd'))
+			if ((level[y][x] == TILE_WALL) || (level[y][x] == TILE_UNWALKABLE) || (level[y][x] == TILE_DOOR))
 				continue;
 
 			/* Don't cut through corners. */
 			switch (position) {
 				case 1:
-					if (level[current_node->y][current_node->x - 1] == 'w')
+					if (level[current_node->y][current_node->x - 1] == TILE_WALL)
 						goto next_node; /* Go to the end of the loop. */
-					else if (level[current_node->y - 1][current_node->x] == 'w')
+					else if (level[current_node->y - 1][current_node->x] == TILE_WALL)
 						goto next_node;
 					break;
 				case 3:
-					if (level[current_node->y][current_node->x + 1] == 'w')
+					if (level[current_node->y][current_node->x + 1] == TILE_WALL)
 						goto next_node;
-					else if (level[current_node->y - 1][current_node->x] == 'w')
+					else if (level[current_node->y - 1][current_node->x] == TILE_WALL)
 						goto next_node;
 					break;
 				case 7:
-					if (level[current_node->y][current_node->x - 1] == 'w')
+					if (level[current_node->y][current_node->x - 1] == TILE_WALL)
 						goto next_node;
-					else if (level[current_node->y + 1][current_node->x] == 'w')
+					else if (level[current_node->y + 1][current_node->x] == TILE_WALL)
 						goto next_node;
 					break;
 				case 9:
-					if (level[current_node->y][current_node->x + 1] == 'w')
+					if (level[current_node->y][current_node->x + 1] == TILE_WALL)
 						goto next_node;
-					else if (level[current_node->y + 1][current_node->x] == 'w')
+					else if (level[current_node->y + 1][current_node->x] == TILE_WALL)
 						goto next_node;
 					break;
 				default:
@@ -139,34 +140,34 @@ int find_path(struct npc *zombie, char level[LEVEL_H][LEVEL_W], struct node *pat
 
 	/* Retrace the path from the end, following parent nodes until we
 	 * reach our zombie. Copy X/Y coordinates into the 'path' struct. */
-	path[1].x = closed[c].x;
-	path[1].y = closed[c].y;
+	zombie->path[1].x = closed[c].x;
+	zombie->path[1].y = closed[c].y;
 	tmp = closed[c].parent;
 
 	for (i = 2; tmp != NULL; i++) {
-		path[i].x = tmp->x;
-		path[i].y = tmp->y;
+		zombie->path[i].x = tmp->x;
+		zombie->path[i].y = tmp->y;
 		tmp = tmp->parent;
 	}
 
 	/* Return the number of nodes in the path, starting from the node next to
 	 * our current position unless certain conditions are met and we need to
 	 * center on our current position first. */
-	if ((path[i - 2].x < path[i - 1].x) &&
-	    (zombie->rect.y > (path[i - 1].y * TILE_SIZE)) &&
-	    (level[path[i - 1].y + 1][path[i - 1].x - 1] == 'w'))
+	if ((zombie->path[i - 2].x < zombie->path[i - 1].x) &&
+	    (zombie->rect.y > (zombie->path[i - 1].y * TILE_SIZE)) &&
+	    (level[zombie->path[i - 1].y + 1][zombie->path[i - 1].x - 1] == TILE_WALL))
 		return i - 1;
-	if ((path[i - 2].y < path[i - 1].y) &&
-	    (zombie->rect.x > (path[i - 1].x * TILE_SIZE)) &&
-	    (level[path[i - 1].y - 1][path[i - 1].x + 1] == 'w'))
+	if ((zombie->path[i - 2].y < zombie->path[i - 1].y) &&
+	    (zombie->rect.x > (zombie->path[i - 1].x * TILE_SIZE)) &&
+	    (level[zombie->path[i - 1].y - 1][zombie->path[i - 1].x + 1] == TILE_WALL))
 		return i - 1;
-	if ((path[i - 2].x > path[i - 1].x) &&
-	    (zombie->rect.y > (path[i - 1].y * TILE_SIZE)) &&
-	    (level[path[i - 1].y + 1][path[i - 1].x + 1] == 'w'))
+	if ((zombie->path[i - 2].x > zombie->path[i - 1].x) &&
+	    (zombie->rect.y > (zombie->path[i - 1].y * TILE_SIZE)) &&
+	    (level[zombie->path[i - 1].y + 1][zombie->path[i - 1].x + 1] == TILE_WALL))
 		return i - 1;
-	if ((path[i - 2].y > path[i - 1].y) &&
-	    (zombie->rect.x > (path[i - 1].x * TILE_SIZE)) &&
-	    (level[path[i - 1].y + 1][path[i - 1].x + 1] == 'w'))
+	if ((zombie->path[i - 2].y > zombie->path[i - 1].y) &&
+	    (zombie->rect.x > (zombie->path[i - 1].x * TILE_SIZE)) &&
+	    (level[zombie->path[i - 1].y + 1][zombie->path[i - 1].x + 1] == TILE_WALL))
 		return i - 1;
 
 	return i - 2;
@@ -200,11 +201,11 @@ void move_zombies(game_data *game)
 
 			/* Reset our path if the player has moved from the destination node. */
 			if ((ZOMBIE(i).dest_x != PLAYER_X) && (ZOMBIE(i).dest_y != PLAYER_Y) &&
-			    (game->level[PLAYER_Y][PLAYER_X] == '.')) {
+			    (game->level[PLAYER_Y][PLAYER_X] == TILE_FLOOR)) {
 				ZOMBIE(i).dest_x = PLAYER_X;
 				ZOMBIE(i).dest_y = PLAYER_Y;
 
-				ZOMBIE(i).num_nodes = find_path(&ZOMBIE(i), game->level, ZOMBIE(i).path);
+				ZOMBIE(i).num_nodes = find_path(&ZOMBIE(i), game->level);
 			}
 
 			/* Set a random destination if we can't reach our
@@ -315,11 +316,11 @@ void move_zombies(game_data *game)
 			if ((ZOMBIE_X(i) + x < 0) || (ZOMBIE_X(i) + x > LEVEL_W) || 
 			    (ZOMBIE_Y(i) + y < 0) || (ZOMBIE_Y(i) + y > LEVEL_W))
 				i--;
-			else if (game->level[ZOMBIE_Y(i) + y][ZOMBIE_X(i) + x] == '.') {
+			else if (game->level[ZOMBIE_Y(i) + y][ZOMBIE_X(i) + x] == TILE_FLOOR) {
 				ZOMBIE(i).dest_x = ZOMBIE_X(i) + x;
 				ZOMBIE(i).dest_y = ZOMBIE_Y(i) + y;
 
-				ZOMBIE(i).num_nodes = find_path(&ZOMBIE(i), game->level, ZOMBIE(i).path);
+				ZOMBIE(i).num_nodes = find_path(&ZOMBIE(i), game->level);
 				if (ZOMBIE(i).num_nodes == 0)
 					i--;
 			} else

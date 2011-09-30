@@ -12,23 +12,23 @@ void clear_level(game_data *game)
 	/* Clear goodies off the level. */
 	for (y = 0; y < LEVEL_H; y++)
 		for (x = 0; x < LEVEL_W; x++) {
-			if (game->level[y][x] == 'g')
-				game->level[y][x] = '.';
+			if (game->level[y][x] == TILE_GOODIE)
+				game->level[y][x] = TILE_FLOOR;
 		}
 
 	/* Set entrance into place. */
 	for (y = 0; y < LEVEL_H; y++) {
-		if ((game->level[y][0] == 'x') || 
-		    (game->level[y][0] == '.')) {
-			game->level[y][0] = 'd';
+		if ((game->level[y][0] == TILE_UNWALKABLE) || 
+		    (game->level[y][0] == TILE_FLOOR)) {
+			game->level[y][0] = TILE_DOOR;
 			break;
 		}
 	}
 
 	/* Close exit if open. */
 	for (y = 0; y < LEVEL_H; y++) {
-		if (game->level[y][LEVEL_W - 1] == 'e') {
-			game->level[y][LEVEL_W - 1] = 'd';
+		if (game->level[y][LEVEL_W - 1] == TILE_EXIT) {
+			game->level[y][LEVEL_W - 1] = TILE_DOOR;
 			break;
 		}
 	}
@@ -38,7 +38,7 @@ void generate_level(game_data *game)
 {
 	int x, y, i;
 	FILE *level;
-	char tmp, filename[64];
+	char tmp, filename[256];
 
 	/* Choose a random text file. */
 	sprintf(filename, "%s%s-%d", DATADIR, "data/levels/level",  rand() % NUM_LEVELS);
@@ -96,8 +96,8 @@ void open_exit(game_data *game)
 	int y;
 
 	for (y = 0; y < LEVEL_H; y++) {
-		if (game->level[y][LEVEL_W - 1] == 'd') {
-			game->level[y][LEVEL_W - 1] = 'e';
+		if (game->level[y][LEVEL_W - 1] == TILE_DOOR) {
+			game->level[y][LEVEL_W - 1] = TILE_EXIT;
 			clear_entity(&(*game), game->wall[y][LEVEL_W - 1]);
 			break;
 		}
@@ -112,8 +112,8 @@ void set_goodies(game_data *game)
 
 	for (i = 0; i < game->num_goodies; i++) {
 		x = rand() % LEVEL_W, y = rand() % LEVEL_H;
-		if (game->level[y][x] == '.') {
-			game->level[y][x] = 'g';
+		if (game->level[y][x] == TILE_FLOOR) {
+			game->level[y][x] = TILE_GOODIE;
 			game->goodie[i].x = x * TILE_SIZE + (TILE_SIZE / 4);
 			game->goodie[i].y = y * TILE_SIZE + (TILE_SIZE / 4);
 			game->goodie[i].w = TILE_SIZE / 2;
@@ -129,8 +129,8 @@ void set_player(game_data *game)
 
 	/* Place our player in the level entrance. */
 	for (y = 0; y < LEVEL_H; y++) {
-		if (game->level[y][0] == 'd') {
-			game->level[y][0] = 'x';
+		if (game->level[y][0] == TILE_DOOR) {
+			game->level[y][0] = TILE_UNWALKABLE;
 			game->player.y = y * TILE_SIZE;
 			game->player.x = 0;
 			break;
@@ -146,7 +146,7 @@ void set_zombies(game_data *game)
 	
 	for (i = 0; i < game->num_zombies; i++) {
 		x = rand() % LEVEL_W, y = rand() % LEVEL_H;
-		if (game->level[y][x] == '.') {
+		if (game->level[y][x] == TILE_FLOOR) {
 			game->zombie[i].rect.x = x * TILE_SIZE;
 			game->zombie[i].rect.y = y * TILE_SIZE;
 			game->zombie[i].rect.w = ENTITY_SIZE;

@@ -51,14 +51,14 @@ void move_player(game_data *game)
 	for (y = PLAYER_Y - 1; y <= PLAYER_Y + 1; y++)
 	for (x = PLAYER_X - 1; x <= PLAYER_X + 1; x++, position++)
 		switch (game->level[y][x]) {
-		case 'e':
+		case TILE_EXIT:
 			/* You have cleared this stage, congratulations! */
 			if (detect_collision(game->player, game->wall[y][x])) {
 				clear_entity(&(*game), game->player);
 				game->level_cleared = true;
 			}
 			break;
-		case 'g':
+		case TILE_GOODIE:
 			/* Find which goodie in the 'goodies' array we're colliding with. */
 			for (i = 0; i < game->num_goodies; i++)
 				if ((game->goodie[i].x / TILE_SIZE == x) && \
@@ -69,7 +69,7 @@ void move_player(game_data *game)
 			if (detect_collision(game->player, game->goodie[i])) {
 				clear_entity(&(*game), game->goodie[i]);
 				game->goodie[i] = game->goodie[game->num_goodies - 1];
-				game->level[y][x] = '.';
+				game->level[y][x] = TILE_FLOOR;
 				game->num_goodies--;
 				game->score += 100;
 				/* Give us 1 life every 10000 score. */
@@ -82,15 +82,15 @@ void move_player(game_data *game)
 					open_exit(&(*game));
 			}
 			break;
-		case 'd': /* Treat the closed door as a wall and fall through. */
-		case 'w':
+		case TILE_DOOR: /* Treat the closed door as a wall and fall through. */
+		case TILE_WALL:
 			tmp = game->player;
 			if (move_x < 0) {
 				switch (position) {
 				case 1: /* Do not move through walls to the top-left diagonally. */
 					tmp.x += move_x, tmp.y += move_y;
 					if ((detect_collision(tmp, game->wall[y][x])) &&
-					    (game->level[y + 1][x] != 'w') && (move_y < 0))
+					    (game->level[y + 1][x] != TILE_WALL) && (move_y < 0))
 						move_y = (game->wall[y][x].y + game->wall[y][x].h) - game->player.y;
 					break;
 				case 4: /* Do not move through walls to the left. */
@@ -110,7 +110,7 @@ void move_player(game_data *game)
 				case 3: /* Do not move through walls to the top-right diagonally. */
 					tmp.x += move_x, tmp.y += move_y;
 					if ((detect_collision(tmp, game->wall[y][x])) &&
-					    (game->level[y + 1][x] != 'w') && (move_y < 0))
+					    (game->level[y + 1][x] != TILE_WALL) && (move_y < 0))
 						move_y = (game->wall[y][x].y + game->wall[y][x].h) - game->player.y;
 					break;
 				case 6: /* Do not move through walls to the right. */
@@ -147,7 +147,7 @@ void move_player(game_data *game)
 				case 7: /* Do not move through walls to the bottom-left diagonally. */
 					tmp.x += move_x, tmp.y += move_y;
 					if ((detect_collision(tmp, game->wall[y][x])) &&
-					    (game->level[y][x + 1] != 'w') && (move_x < 0))
+					    (game->level[y][x + 1] != TILE_WALL) && (move_x < 0))
 						move_x = (game->wall[y][x].x + game->wall[y][x].w) - game->player.x;
 					break;
 				case 8: /* Do not move through walls to the bottom. */
@@ -165,7 +165,7 @@ void move_player(game_data *game)
 					/* Do not move through walls to the bottom-right diagonally. */
 					tmp.x += move_x;
 					if ((detect_collision(tmp, game->wall[y][x])) &&
-					    (game->level[y][x - 1] != 'w') && (move_x > 0))
+					    (game->level[y][x - 1] != TILE_WALL) && (move_x > 0))
 						move_x = game->wall[y][x].x - (game->player.x + game->player.w);
 					break;
 				}

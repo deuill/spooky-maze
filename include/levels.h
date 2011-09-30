@@ -1,6 +1,15 @@
 #ifndef LEVELS_H
 #define LEVELS_H
 
+/* Map tile definitions. These are used in the levels/*.txt files
+ * to make up the levels for the game. */
+#define TILE_FLOOR	'.'
+#define TILE_WALL	'w'
+#define TILE_DOOR	'd'
+#define TILE_EXIT	'e'
+#define TILE_GOODIE	'g'
+#define TILE_UNWALKABLE	'x'
+
 /* Number of levels in the data folder. Increment this when you add a
  * new level in the data folder. */
 #define NUM_LEVELS 4

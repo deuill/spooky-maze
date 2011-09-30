@@ -21,12 +21,12 @@ struct list {
 	struct list *parent; /* The parent node for each node. */
 };
 
-/* find_path: Calculate path for 'zombie' looking for walls and other
- *            obstructions along the way in 'level'. Copies the path in
- *            the 'path' structure and returns the number of nodes. An
+/* find_path: Calculate path for 'zombie' looking for walls and other obstructions
+ *            along the way in 'level'. Copies the path in the 'path' structure
+ *            belonging to 'zombie' and returns the number of nodes. An
  *            implementation of the A* pathfinding algoarithm.
  */
-int find_path(struct npc *zombie, char level[LEVEL_H][LEVEL_W], struct node *path);
+int find_path(struct npc *zombie, char level[LEVEL_H][LEVEL_W]);
 
 /* move_zombies: Move zombies through level, chasing the player if found
  *               inside a radius of 5 squares around the zombie.

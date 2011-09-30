@@ -4,6 +4,7 @@
 
 #include "game.h"
 #include "graphics.h"
+#include "levels.h"
 
 void clear_entity(game_data *game, SDL_Rect entity)
 {
@@ -17,7 +18,7 @@ void draw_level(game_data *game)
 	for (y = 0; y < LEVEL_H; y++) {
 		for (x = 0; x < LEVEL_W; x++) {
 			switch (game->level[y][x]) {
-			case 'w': /* Wall tile. */
+			case TILE_WALL:
 				game->wall[y][x].w = TILE_SIZE;
 				game->wall[y][x].h = TILE_SIZE;
 				game->wall[y][x].x = x * TILE_SIZE;
@@ -25,7 +26,7 @@ void draw_level(game_data *game)
 
 				SDL_FillRect(game->world, &(game->wall[y][x]), game->white);
 				break;
-			case 'd': /* Closed door. Behaves like a wall for collision purposes. */
+			case TILE_DOOR: /* Behaves like a wall for collision purposes. */
 				game->wall[y][x].w = TILE_SIZE;
 				game->wall[y][x].h = TILE_SIZE;
 				game->wall[y][x].x = x * TILE_SIZE;
@@ -40,17 +41,16 @@ void draw_level(game_data *game)
 
 				SDL_FillRect(game->world, &(game->wall[y][x]), game->brown);
 				break;
-			case 'g': /* Goodies should always have floor tiles under them. */
-			case 'x': /* This tile is unwalkable by zombies. */
-			case '.': /* Floor tile. */
+			case TILE_GOODIE: /* Goodies should always have floor tiles under them. */
+			case TILE_UNWALKABLE: /* This tile is unwalkable by zombies. */
+			case TILE_FLOOR:
+			default:
 				game->wall[y][x].w = TILE_SIZE;
 				game->wall[y][x].h = TILE_SIZE;
 				game->wall[y][x].x = x * TILE_SIZE;
 				game->wall[y][x].y = y * TILE_SIZE;
 
 				SDL_FillRect(game->world, &(game->wall[y][x]), game->black);
-				break;
-			default:
 				break;
 			}
 		}
@@ -59,19 +59,16 @@ void draw_level(game_data *game)
 
 void draw_text(game_data *game, const char *text, int pos_x, int pos_y)
 {
-	int x, y, i;
-	SDL_Rect font;
-	SDL_Rect offset;
+	int i;
+	SDL_Rect font, offset;
 
 	offset.x = pos_x, offset.y = pos_y;
 	font.w = game->graphics.font->w / 10;
 	font.h = game->graphics.font->h / 10;
 
 	for (i = 0; text[i] != '\0'; i++) {
-		x = (text[i] % 10) * font.w;
-		y = ((text[i] / 10) - 3) * font.h;
-
-		font.x = x, font.y = y;
+		font.x = (text[i] % 10) * font.w;
+		font.y = ((text[i] / 10) - 3) * font.h;
 
 		SDL_BlitSurface(game->graphics.font, &font, game->screen, &offset);
 		offset.x += font.w;
@@ -80,7 +77,7 @@ void draw_text(game_data *game, const char *text, int pos_x, int pos_y)
 
 void load_font(game_data *game)
 {
-	char font_file[64];
+	char font_file[256];
 
 	/* Load font for menus etc. */
 	if (SCREEN_H <= 320) {

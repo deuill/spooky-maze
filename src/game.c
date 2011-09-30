@@ -133,6 +133,8 @@ int main(void)
 					SDL_Delay(16 - game.delta_time);
 			}
 
+			/* Level end. */
+
 			if (game.dead) {
 				game.lives--;
 				game.dead = false;
@@ -160,9 +162,12 @@ int main(void)
 				printf("Level: %d\n", game.cur_level);
 			}
 		}
+
+		/* Game session end. */
+
 		printf("Game over, biatch!\n");
 	}
 
 	SDL_Quit();
-	return 0;
+	exit(0);
 }
