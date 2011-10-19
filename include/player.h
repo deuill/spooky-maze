@@ -1,7 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#define PLAYER_SPEED 250 /* Movement speed for our player in pixels per second. */
+#define PLAYER_SPEED (TILE_SIZE * 4) /* Movement speed for our player in pixels per second. */
 
 #define PLAYER_X (game->player.x / TILE_SIZE) /* Current player position in */
 #define PLAYER_Y (game->player.y / TILE_SIZE) /* relation to the 'level' array. */

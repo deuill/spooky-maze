@@ -1,13 +1,13 @@
 #ifndef ZOMBIE_H
 #define ZOMBIE_H
 
-#define ZOMBIE_SPEED 160 /* Walking speed of zombies in pixels per second. */
+#define ZOMBIE_SPEED (TILE_SIZE * 3) /* Walking speed of zombies in pixels per second. */
 
 #define ZOMBIE(i)    game->zombie[i]			 /* Current zombie. */
 #define ZOMBIE_X(i) (game->zombie[i].rect.x / TILE_SIZE) /* Current zombie position in     */
 #define ZOMBIE_Y(i) (game->zombie[i].rect.y / TILE_SIZE) /* relation to the 'level' array. */
 
-#define CURRENT_NODE(i) ZOMBIE(i).path[ZOMBIE(i).num_nodes] /* Current occupied node. */
+#define ZOMBIE_NODE(i) ZOMBIE(i).path[ZOMBIE(i).num_nodes] /* Current occupied node. */
 
 /* Used in 'find_path()', this defines how long we will search for the destination.
  * Larger numbers mean more chances of success, but also more time spent searching. */
@@ -27,6 +27,14 @@ struct list {
  *            implementation of the A* pathfinding algoarithm.
  */
 int find_path(struct npc *zombie, char level[LEVEL_H][LEVEL_W]);
+
+/* line_of_sight: Determine if element in position 'src_x', 'src_y' can see element
+ *                in position 'dst_x', 'dst_y' and vice versa, using 'level' to
+ *                determine obstructions. Positions are relative to indices in 'level'.
+ *                Returns 'true' or 'false', if elements were found to be visible to
+ *                each other or not, respectively.
+ */
+int line_of_sight(int src_x, int src_y, int dst_x, int dst_y, char level[LEVEL_H][LEVEL_W]);
 
 /* move_zombies: Move zombies through level, chasing the player if found
  *               inside a radius of 5 squares around the zombie.
