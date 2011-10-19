@@ -1,7 +1,7 @@
 #ifndef LEVELS_H
 #define LEVELS_H
 
-/* Map tile definitions. These are used in the levels/*.txt files
+/* Map tile definitions. These are used in the levels/level-*.txt files
  * to make up the levels for the game. */
 #define TILE_FLOOR	'.'
 #define TILE_WALL	'w'
