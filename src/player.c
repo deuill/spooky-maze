@@ -54,7 +54,7 @@ void move_player(game_data *game)
 		case TILE_EXIT:
 			/* You have cleared this stage, congratulations! */
 			if (detect_collision(game->player, game->wall[y][x])) {
-				clear_entity(&(*game), game->player);
+				clear_entity(game, game->player);
 				game->level_cleared = true;
 			}
 			break;
@@ -67,7 +67,7 @@ void move_player(game_data *game)
 			/* Once we collide with the goodie, clear the goodie, rearrange
 			 * the goodies array and reduce the number of goodies in the level. */
 			if (detect_collision(game->player, game->goodie[i])) {
-				clear_entity(&(*game), game->goodie[i]);
+				clear_entity(game, game->goodie[i]);
 				game->goodie[i] = game->goodie[game->num_goodies - 1];
 				game->level[y][x] = TILE_FLOOR;
 				game->num_goodies--;
@@ -79,7 +79,7 @@ void move_player(game_data *game)
 				}
 				/* If we have removed all goodies, open the door. */
 				if (game->num_goodies == 0)
-					open_exit(&(*game));
+					open_exit(game);
 			}
 			break;
 		case TILE_DOOR: /* Treat the closed door as a wall and fall through. */
@@ -180,19 +180,19 @@ void move_player(game_data *game)
 	else if ((tmp.x + tmp.w >= LEVEL_W * TILE_SIZE) && move_x > 0)
 		move_x = (LEVEL_W * TILE_SIZE) - (game->player.x + game->player.w);
 
-	clear_entity(&(*game), game->player);
+	clear_entity(game, game->player);
 
 	game->player.x += move_x;
 	game->player.y += move_y;
 
-	set_camera(&(*game));
+	set_camera(game);
 }
 
 void set_camera(game_data *game)
 {
 	/* Keep the camera centered over our player. */
-	game->camera.x = (game->player.x + ENTITY_SIZE / 2) - SCREEN_W / 2;
-	game->camera.y = (game->player.y + ENTITY_SIZE / 2) - SCREEN_H / 2;
+	game->camera.x = (game->player.x + ENTITY_SIZE / 2) - game->screen_w / 2;
+	game->camera.y = (game->player.y + ENTITY_SIZE / 2) - game->screen_h / 2;
 
 	/* Do not go out of bounds. */
 	if (game->camera.x < 0)
