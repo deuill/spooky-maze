@@ -10,10 +10,6 @@
 #define TILE_GOODIE	'g'
 #define TILE_UNWALKABLE	'x'
 
-/* Number of levels in the data folder. Increment this when you add a
- * new level in the data folder. */
-#define NUM_LEVELS 4
-
 /* clear_level: Clear level array from data without regenerating.
  */
 void clear_level(game_data *game);

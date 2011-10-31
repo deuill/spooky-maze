@@ -41,7 +41,7 @@ void generate_level(game_data *game)
 	char tmp, filename[256];
 
 	/* Choose a random text file. */
-	sprintf(filename, "%s%s-%d", DATADIR, "data/levels/level",  rand() % NUM_LEVELS);
+	sprintf(filename, "%s%s-%d.txt", game->datadir, "/levels/level",  rand() % game->num_levels);
 
 	/* Load the text file. */
 	level = fopen(filename, "r");
@@ -98,7 +98,7 @@ void open_exit(game_data *game)
 	for (y = 0; y < LEVEL_H; y++) {
 		if (game->level[y][LEVEL_W - 1] == TILE_DOOR) {
 			game->level[y][LEVEL_W - 1] = TILE_EXIT;
-			clear_entity(&(*game), game->wall[y][LEVEL_W - 1]);
+			clear_entity(game, game->wall[y][LEVEL_W - 1]);
 			break;
 		}
 	}
@@ -107,8 +107,6 @@ void open_exit(game_data *game)
 void set_goodies(game_data *game)
 {
 	int x, y, i;
-
-	game->num_goodies = 12;
 
 	for (i = 0; i < game->num_goodies; i++) {
 		x = rand() % LEVEL_W, y = rand() % LEVEL_H;
@@ -141,8 +139,6 @@ void set_player(game_data *game)
 void set_zombies(game_data *game)
 {
 	int x, y, i;
-	
-	game->num_zombies = 6;
 	
 	for (i = 0; i < game->num_zombies; i++) {
 		x = rand() % LEVEL_W, y = rand() % LEVEL_H;
