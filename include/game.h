@@ -11,16 +11,27 @@
 #define LEVEL_W 40 /* Width and height */
 #define LEVEL_H 30 /* of the level in tiles. */
 
-/* Change DATADIR if you plan on installing the game with the binary and
- * data folder in seperate locations. Empty (relative path) by default. */
-#define DATADIR ""
+/* Path for data files. Relative path by default, this can be set during
+ * compilation and can be changed at run-time by supplying the '-d' option. */
+#ifndef DATADIR
+#define DATADIR "data"
+#endif
 
 /* terminate: Shuts down SDL and exits cleanly, optionally emitting an
  *            error message if code != 0. Returns code to the system.
  */
 int terminate(int code);
 
+/* Usage: Displays usage information (command-line options) and exits.
+ */
+void usage(void);
+
 typedef struct {
+	/* Various bookkeeping variables for the game. */
+	char *datadir;
+	int num_levels;
+	int screen_w, screen_h;
+
 	/* In order to scroll our level, we first paint everything to
 	 * 'world', then we copy whatever is in the 'camera' rect to
 	 * our screen via 'SDL_BlitSurface()'. */

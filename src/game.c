@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <dirent.h>
 #include <time.h>
 #include <SDL.h>
 
@@ -18,20 +19,102 @@ int terminate(int code)
 	exit(code);
 }
 
-int main(void)
+void usage(void)
 {
+	printf("Usage: spooky-maze -d [datadir]\n");
+	printf("\t-d, --datadir:\n\t\tDirectory where data files reside.\n");
+	printf("\t-f, --fullscreen:\n\t\tStart game in fullscreen.\n");
+	printf("\t-s, --size:\n\t\tSize of game screen (example usage: '-s 800x600').\n");
+	printf("\t-h, --help:\n\t\tDisplay this text.\n");
+	exit(1);
+}
+
+int main(int argc, char *argv[])
+{
+	int i;
+	DIR *tmp_dir;
+	char *token;
+	char dirname[256];
+	bool fullscreen = false;
+	struct dirent *tmp_file;
+
 	game_data game;
 	SDL_Surface *tmp;
 	Uint32 level_time;
 	Uint32 start_time, end_time;
 
+	/* Process command-line arguments. */
+	for (i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "--datadir") == 0 || strcmp(argv[i], "-d") == 0) {
+			if (argv[i + 1] == NULL || argv[i + 1][0] == '-') {
+				printf("Error: No directory specified after '%s'!\n", argv[i]);
+				usage();
+			} else if (tmp_dir = opendir(argv[++i])) {
+				closedir(tmp_dir);
+				game.datadir = argv[i];
+			} else {
+				closedir(tmp_dir);
+				printf("Error: Specified directory does not exist or cannot be accessed!\n");
+				usage();
+			}
+		} else if (strcmp(argv[i], "--fullscreen") == 0 || strcmp(argv[i], "-f") == 0) {
+			fullscreen = true;
+		} else if (strcmp(argv[i], "--size") == 0 || strcmp(argv[i], "-s") == 0) {
+			if ((token = strtok(argv[++i], "x")) != NULL)
+				game.screen_w = atoi(token);
+			else
+				usage();
+			
+			if ((token = strtok(NULL, "x")) != NULL)
+				game.screen_h = atoi(token);
+			else
+				usage();
+
+			if (game.screen_w == 0 || game.screen_h == 0)
+				usage();
+		} else {
+			usage();
+		}
+	}
+
+	if (game.datadir == NULL)
+		game.datadir = DATADIR;
+
+	if (game.screen_w == 0 || game.screen_h == 0) {
+		game.screen_w = SCREEN_W;
+		game.screen_h = SCREEN_H;
+	}
+
+	/* Count number of levels. */
+	game.num_levels = 0;
+	sprintf(dirname, "%s%s", game.datadir, "/levels/");
+
+	tmp_dir = opendir(dirname);
+	if (tmp_dir == NULL) {
+		printf("Error:\tCould not find data files in '%s'.\n"
+		       "\tPlease specify data directory via the '-d' command-line option.\n", dirname);
+		exit(1);
+	}
+
+	while ((tmp_file = readdir(tmp_dir)) != NULL) {
+		if (strncmp("level-", tmp_file->d_name, 6) == 0)
+			game.num_levels++;
+	}
+
+	closedir(tmp_dir);
+
+	/* Initialize SDL and friends. */
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_TIMER) < 0) {
 		printf("Fatal error: %s!\nExiting...\n", SDL_GetError());
 		exit(2);
 	}
 
-	game.screen = SDL_SetVideoMode(SCREEN_W, SCREEN_H, SCREEN_DEPTH,
-				       SDL_HWSURFACE | SDL_DOUBLEBUF);
+	if (fullscreen)
+		game.screen = SDL_SetVideoMode(game.screen_w, game.screen_h, SCREEN_DEPTH,
+			      SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN);
+	else
+		game.screen = SDL_SetVideoMode(game.screen_w, game.screen_h, SCREEN_DEPTH,
+			      SDL_HWSURFACE | SDL_DOUBLEBUF);
 
 	if (game.screen == NULL) {
 		printf("Fatal error: %s!\nExiting...\n", SDL_GetError());
@@ -57,8 +140,8 @@ int main(void)
 
 	load_font(&game);
 
-	game.camera.w = SCREEN_W;
-	game.camera.h = SCREEN_H;
+	game.camera.w = game.screen_w;
+	game.camera.h = game.screen_h;
 	game.player.w = ENTITY_SIZE;
 	game.player.h = ENTITY_SIZE;
 	game.dir_x = 0, game.dir_y = 0;
@@ -78,6 +161,9 @@ int main(void)
 		game.cur_level = 1;
 		game.score_scale = 10000;
 		game.level_cleared = true;
+
+		game.num_zombies = 6;
+		game.num_goodies = 12;
 
 		for (;;) {
 			start_time = 0;
