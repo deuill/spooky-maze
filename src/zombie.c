@@ -235,9 +235,11 @@ void move_zombies(game_data *game)
 	move_y = (int) (ZOMBIE_SPEED * ((float) game->delta_time / 1000.0f));
 
 	for (i = 0; i < game->num_zombies; i++) {
-		/* Chase our player if found closer than 5 tiles away. */
+		/* 
+		 * Chase our player if found closer than 5 tiles away.
+		 */
 		if (abs(PLAYER_X - ZOMBIE_X(i)) <= 5 && abs(PLAYER_Y - ZOMBIE_Y(i)) <= 5) {
-			clear_entity(&(*game), ZOMBIE(i).rect);
+			clear_entity(game, ZOMBIE(i).rect);
 
 			/* Check if we have collided with the player. */
 			if (abs(PLAYER_X - ZOMBIE_X(i)) <= 1 && abs(PLAYER_Y - ZOMBIE_Y(i)) <= 1)
@@ -253,12 +255,14 @@ void move_zombies(game_data *game)
 					ZOMBIE(i).dest_x = PLAYER_X;
 					ZOMBIE(i).dest_y = PLAYER_Y;
 					ZOMBIE(i).num_nodes = 0;
+				/* We reached the player's last known position and found nothing. */
 				} else if ((ZOMBIE(i).num_nodes == 0) &&
 				            (ZOMBIE_X(i) == ZOMBIE(i).dest_x) &&
 				            (ZOMBIE_Y(i) == ZOMBIE(i).dest_y)) {
+					ZOMBIE(i).dest_x = 0, ZOMBIE(i).dest_y = 0;
 					goto random;
+				/* Move to last known location if player is out of sight. */
 				} else if (ZOMBIE(i).num_nodes == 0) {
-					/* Move to last known location if player is out of sight */
 					ZOMBIE(i).num_nodes = find_path(&ZOMBIE(i), game->level);
 
 					/* Set a random destination if we can't reach our
@@ -361,9 +365,8 @@ void move_zombies(game_data *game)
 					switch (game->level[ZOMBIE_Y(i) - 1][ZOMBIE_X(i) + 1]) {
 					case TILE_WALL:
 					case TILE_UNWALKABLE:
-						if (detect_collision(tmp, game->wall[ZOMBIE_Y(i) - 1][ZOMBIE_X(i) + 1])) {
+						if (detect_collision(tmp, game->wall[ZOMBIE_Y(i) - 1][ZOMBIE_X(i) + 1]))
 							move_y = ZOMBIE(i).rect.y - (game->wall[ZOMBIE_Y(i) - 1][ZOMBIE_X(i) + 1].y + TILE_SIZE);
-						}
 					}
 
 					if (tmp.y < ZOMBIE(i).dest_y * TILE_SIZE)
@@ -391,7 +394,7 @@ void move_zombies(game_data *game)
 					}
 				}
 
-				/* Calculate movement direction. */
+				/* Move towards destination. */
 				if (ZOMBIE(i).rect.x < ZOMBIE(i).dest_x * TILE_SIZE)
 					ZOMBIE(i).rect.x += move_x;
 				else if (ZOMBIE(i).rect.x > ZOMBIE(i).dest_x * TILE_SIZE)
@@ -402,13 +405,16 @@ void move_zombies(game_data *game)
 				else if (ZOMBIE(i).rect.y > ZOMBIE(i).dest_y * TILE_SIZE)
 					ZOMBIE(i).rect.y -= move_y;
 			} else if (ZOMBIE(i).num_nodes == 0) {
+				ZOMBIE(i).dest_x = 0, ZOMBIE(i).dest_y = 0;
 				goto random;
 			} else {
 				goto move;
 			}
-		/* Start moving if we do have a destination set. */
+		/* 
+		 * Start moving if we do have a destination set.
+		 */
 		} else if (ZOMBIE(i).num_nodes > 0) {
-			clear_entity(&(*game), ZOMBIE(i).rect);
+			clear_entity(game, ZOMBIE(i).rect);
 
 			move:
 
@@ -416,8 +422,10 @@ void move_zombies(game_data *game)
 			if ((ZOMBIE_NODE(i).x * TILE_SIZE == ZOMBIE(i).rect.x) &&
 			    (ZOMBIE_NODE(i).y * TILE_SIZE == ZOMBIE(i).rect.y)) {
 				ZOMBIE(i).num_nodes--;
-				if (ZOMBIE(i).num_nodes == 0)
+				if (ZOMBIE(i).num_nodes == 0) {
+					ZOMBIE(i).dest_x = 0, ZOMBIE(i).dest_y = 0;
 					continue;
+				}
 			}
 
 			/* Reset X and Y movement speed if zeroed out */
@@ -444,21 +452,27 @@ void move_zombies(game_data *game)
 						/* Recalculate path if stuck against one another. */
 						if ((ZOMBIE(i).rect.x + ZOMBIE(i).rect.w < ZOMBIE(n).rect.x) &&
 						    (ZOMBIE(i).rect.x < ZOMBIE_NODE(i).x * TILE_SIZE) &&
-						    (ZOMBIE(n).rect.x > ZOMBIE_NODE(n).x * TILE_SIZE))
+						    (ZOMBIE(n).rect.x > ZOMBIE_NODE(n).x * TILE_SIZE)) {
+							ZOMBIE(i).dest_x = 0, ZOMBIE(i).dest_y = 0;
 							goto random;
-						else if ((ZOMBIE(i).rect.x + ZOMBIE(i).rect.w > ZOMBIE(n).rect.x) &&
+						} else if ((ZOMBIE(i).rect.x + ZOMBIE(i).rect.w > ZOMBIE(n).rect.x) &&
 						    (ZOMBIE(i).rect.x > ZOMBIE_NODE(i).x * TILE_SIZE) &&
-						    (ZOMBIE(n).rect.x < ZOMBIE_NODE(n).x * TILE_SIZE))
+						    (ZOMBIE(n).rect.x < ZOMBIE_NODE(n).x * TILE_SIZE)) {
+							ZOMBIE(i).dest_x = 0, ZOMBIE(i).dest_y = 0;
 							goto random;
+						}
 
 						if ((ZOMBIE(i).rect.y + ZOMBIE(i).rect.h < ZOMBIE(n).rect.y) &&
 						    (ZOMBIE(i).rect.y < ZOMBIE_NODE(i).y * TILE_SIZE) &&
-						    (ZOMBIE(n).rect.y > ZOMBIE_NODE(n).y * TILE_SIZE))
+						    (ZOMBIE(n).rect.y > ZOMBIE_NODE(n).y * TILE_SIZE)) {
+							ZOMBIE(i).dest_x = 0, ZOMBIE(i).dest_y = 0;
 							goto random;
-						else if ((ZOMBIE(i).rect.y + ZOMBIE(i).rect.h > ZOMBIE(n).rect.y) &&
+						} else if ((ZOMBIE(i).rect.y + ZOMBIE(i).rect.h > ZOMBIE(n).rect.y) &&
 						    (ZOMBIE(i).rect.y > ZOMBIE_NODE(i).y * TILE_SIZE) &&
-						    (ZOMBIE(n).rect.y < ZOMBIE_NODE(n).y * TILE_SIZE))
+						    (ZOMBIE(n).rect.y < ZOMBIE_NODE(n).y * TILE_SIZE)) {
+							ZOMBIE(i).dest_x = 0, ZOMBIE(i).dest_y = 0;
 							goto random;
+						}
 
 						/* Stop moving if other zombie is in path */
 						if ((ZOMBIE(i).rect.x > game->zombie[n].rect.x + game->zombie[n].rect.w) &&
@@ -501,23 +515,49 @@ void move_zombies(game_data *game)
 				else
 					ZOMBIE(i).rect.y += move_y;
 			}
-		/* We don't have a destination set, so let's set one +/- 10 squares away. */
+		/* 
+		 * We don't have a destination set, so let's set one +/- 10 squares away. 
+		 */
 		} else {
 			random:
 
-			x = (rand() % 20) - 10, y = (rand() % 20) - 10;
+			/* Be biased toward pre-existing destinations, used for chasing
+			 * the player after losing sight. */
+			if (ZOMBIE(i).dest_x != 0 && ZOMBIE(i).dest_y != 0) {
+				if (ZOMBIE(i).dest_x - ZOMBIE_X(i) > 0)
+					x = (rand() % 10);
+				else if (ZOMBIE(i).dest_x - ZOMBIE_X(i) < 0)
+					x = (rand() % 10) * -1;
+				else
+					x = (rand() % 20) - 10;
+
+				if (ZOMBIE(i).dest_y - ZOMBIE_Y(i) > 0)
+					y = (rand() % 10);
+				else if (ZOMBIE(i).dest_y - ZOMBIE_Y(i) < 0)
+					y = (rand() % 10) * -1;
+				else
+					y = (rand() % 20) - 10;
+			} else {
+				x = (rand() % 20) - 10, y = (rand() % 20) - 10;
+			}
+
 			if ((ZOMBIE_X(i) + x < 0) || (ZOMBIE_X(i) + x > LEVEL_W) || 
-			    (ZOMBIE_Y(i) + y < 0) || (ZOMBIE_Y(i) + y > LEVEL_W))
+			    (ZOMBIE_Y(i) + y < 0) || (ZOMBIE_Y(i) + y > LEVEL_W)) {
+				ZOMBIE(i).dest_x = 0, ZOMBIE(i).dest_y = 0;
 				i--;
-			else if (game->level[ZOMBIE_Y(i) + y][ZOMBIE_X(i) + x] == TILE_FLOOR) {
+			} else if (game->level[ZOMBIE_Y(i) + y][ZOMBIE_X(i) + x] == TILE_FLOOR) {
 				ZOMBIE(i).dest_x = ZOMBIE_X(i) + x;
 				ZOMBIE(i).dest_y = ZOMBIE_Y(i) + y;
 
 				ZOMBIE(i).num_nodes = find_path(&ZOMBIE(i), game->level);
-				if (ZOMBIE(i).num_nodes == 0)
+				if (ZOMBIE(i).num_nodes == 0) {
+					ZOMBIE(i).dest_x = 0, ZOMBIE(i).dest_y = 0;
 					i--;
-			} else
+				}
+			} else {
+				ZOMBIE(i).dest_x = 0, ZOMBIE(i).dest_y = 0;
 				i--;
+			}
 		}
 	}
 }

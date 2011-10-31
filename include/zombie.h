@@ -1,7 +1,7 @@
 #ifndef ZOMBIE_H
 #define ZOMBIE_H
 
-#define ZOMBIE_SPEED (TILE_SIZE * 3) /* Walking speed of zombies in pixels per second. */
+#define ZOMBIE_SPEED 160 /* Walking speed of zombies in pixels per second. */
 
 #define ZOMBIE(i)    game->zombie[i]			 /* Current zombie. */
 #define ZOMBIE_X(i) (game->zombie[i].rect.x / TILE_SIZE) /* Current zombie position in     */
