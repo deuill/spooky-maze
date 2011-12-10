@@ -9,27 +9,24 @@
 
 bool detect_collision(SDL_Rect player, SDL_Rect wall)
 {
-	/* Check top-left corner of the 'player' rectangle. */
-	if ((wall.x <= player.x && player.x <= wall.x + wall.w) &&
-	    (wall.y <= player.y && player.y <= wall.y + wall.h))
-		return true;
-	/* Check top-right corner of the 'player' rectangle. */
-	if ((wall.x <= player.x + player.w && player.x + player.w <= wall.x + wall.w) &&
-	    (wall.y <= player.y && player.y <= wall.y + wall.h))
-		return true;
-	/* Check bottom-left corner of the 'player' rectangle. */
-	if ((wall.x <= player.x && player.x <= wall.x + wall.w) &&
-	    (wall.y <= player.y + player.h && player.y + player.h <= wall.y + wall.h))
-		return true;
-	/* Check bottom-right corner of the 'player' rectangle. */
-	if ((wall.x <= player.x + player.w && player.x + player.w <= wall.x + wall.w) &&
-	    (wall.y <= player.y + player.h && player.y + player.h <= wall.y + wall.h))
-		return true;
-	/* Check center of the 'player' rectangle. */
-	if ((wall.x <= player.x + (player.w / 2) && player.x + (player.w / 2) <= wall.x + wall.w) &&
-	    (wall.y <= player.y + (player.h / 2) && player.y + (player.h / 2) <= wall.y + wall.h))
-		return true;
-	/* No collision detected. */
+	if (player.x < wall.x) {
+		if (player.x + player.w > wall.x) {
+			if (player.y + player.h < wall.y)
+				return false;
+			else if (player.y > wall.y + wall.h)
+				return false;
+			else
+				return true;
+		}
+	} else if (player.x < wall.x + wall.w) {
+		if (player.y + player.h < wall.y)
+			return false;
+		else if (player.y > wall.y + wall.h)
+			return false;
+		else
+			return true;
+	}
+
 	return false;
 }
 

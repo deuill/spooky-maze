@@ -10,9 +10,8 @@
  */
 void move_player(game_data *game);
 
-/* detect_collision: Finds if 'player' intersects 'wall' by checking if
- *                   'wall.x <= player.x <= wall.x + wall.w' and so on
- *                   for each of the four points in the 'player' rect.
+/* detect_collision: Finds if 'player' intersects 'wall' and returns true
+ * 		     or false if it does or doesn't, respectively.
  */
 bool detect_collision(SDL_Rect player, SDL_Rect wall);
 
