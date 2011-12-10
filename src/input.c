@@ -15,20 +15,20 @@ void handle_input(game_data *game)
 		case SDL_KEYDOWN:
 			switch (event.key.keysym.sym) {
 			case SDLK_UP:
-				game->dir_y = 0;
-				game->dir_y -= PLAYER_SPEED;
+				game->player.dir_y = 0;
+				game->player.dir_y -= PLAYER_SPEED;
 				break;
 			case SDLK_DOWN:
-				game->dir_y = 0;
-				game->dir_y += PLAYER_SPEED;
+				game->player.dir_y = 0;
+				game->player.dir_y += PLAYER_SPEED;
 				break;
 			case SDLK_LEFT:
-				game->dir_x = 0;
-				game->dir_x -= PLAYER_SPEED;
+				game->player.dir_x = 0;
+				game->player.dir_x -= PLAYER_SPEED;
 				break;
 			case SDLK_RIGHT:
-				game->dir_x = 0;
-				game->dir_x += PLAYER_SPEED;
+				game->player.dir_x = 0;
+				game->player.dir_x += PLAYER_SPEED;
 				break;
 			case SDLK_F11:
 				SDL_WM_ToggleFullScreen(game->screen);
@@ -40,68 +40,68 @@ void handle_input(game_data *game)
 		case SDL_KEYUP:
 			switch (event.key.keysym.sym) {
 			case SDLK_UP:
-				game->dir_y = 0;
+				game->player.dir_y = 0;
 				if (key[SDLK_DOWN])
-					game->dir_y += PLAYER_SPEED;
+					game->player.dir_y += PLAYER_SPEED;
 				break;
 			case SDLK_DOWN:
-				game->dir_y = 0;
+				game->player.dir_y = 0;
 				if (key[SDLK_UP])
-					game->dir_y -= PLAYER_SPEED;
+					game->player.dir_y -= PLAYER_SPEED;
 				break;
 			case SDLK_LEFT:
-				game->dir_x = 0;
+				game->player.dir_x = 0;
 				if (key[SDLK_RIGHT])
-					game->dir_x += PLAYER_SPEED;
+					game->player.dir_x += PLAYER_SPEED;
 				break;
 			case SDLK_RIGHT:
-				game->dir_x = 0;
+				game->player.dir_x = 0;
 				if (key[SDLK_LEFT])
-					game->dir_x -= PLAYER_SPEED;
+					game->player.dir_x -= PLAYER_SPEED;
 				break;
 			}
 		break;
 		case SDL_JOYBUTTONDOWN:
 			switch (event.jbutton.button) {
 			case JOYSTICK_UP:
-				game->dir_y = 0;
-				game->dir_y -= PLAYER_SPEED;
+				game->player.dir_y = 0;
+				game->player.dir_y -= PLAYER_SPEED;
 				break;
 			case JOYSTICK_DOWN:
-				game->dir_y = 0;
-				game->dir_y += PLAYER_SPEED;
+				game->player.dir_y = 0;
+				game->player.dir_y += PLAYER_SPEED;
 				break;
 			case JOYSTICK_LEFT:
-				game->dir_x = 0;
-				game->dir_x -= PLAYER_SPEED;
+				game->player.dir_x = 0;
+				game->player.dir_x -= PLAYER_SPEED;
 				break;
 			case JOYSTICK_RIGHT:
-				game->dir_x = 0;
-				game->dir_x += PLAYER_SPEED;
+				game->player.dir_x = 0;
+				game->player.dir_x += PLAYER_SPEED;
 				break;
 			}
 		break;
 		case SDL_JOYBUTTONUP:
 			switch (event.jbutton.button) {
 			case JOYSTICK_UP:
-				game->dir_y = 0;
+				game->player.dir_y = 0;
 				if (key[JOYSTICK_DOWN])
-					game->dir_y += PLAYER_SPEED;
+					game->player.dir_y += PLAYER_SPEED;
 				break;
 			case JOYSTICK_DOWN:
-				game->dir_y = 0;
+				game->player.dir_y = 0;
 				if (key[JOYSTICK_UP])
-					game->dir_y -= PLAYER_SPEED;
+					game->player.dir_y -= PLAYER_SPEED;
 				break;
 			case JOYSTICK_LEFT:
-				game->dir_x = 0;
+				game->player.dir_x = 0;
 				if (key[JOYSTICK_RIGHT])
-					game->dir_x += PLAYER_SPEED;
+					game->player.dir_x += PLAYER_SPEED;
 				break;
 			case JOYSTICK_RIGHT:
-				game->dir_x = 0;
+				game->player.dir_x = 0;
 				if (key[JOYSTICK_LEFT])
-					game->dir_x -= PLAYER_SPEED;
+					game->player.dir_x -= PLAYER_SPEED;
 				break;
 			}
 		break;
@@ -109,35 +109,35 @@ void handle_input(game_data *game)
 			switch (event.jaxis.axis) {
 			case 0: /* Left - Right stick axis. */
 				if (event.jaxis.value < -16000) {
-					game->dir_x = 0;
-					game->dir_x -= PLAYER_SPEED;
+					game->player.dir_x = 0;
+					game->player.dir_x -= PLAYER_SPEED;
 				} else if (event.jaxis.value < -6400) {
-					game->dir_x = 0;
-					game->dir_x -= PLAYER_SPEED / 2;
+					game->player.dir_x = 0;
+					game->player.dir_x -= PLAYER_SPEED / 2;
 				} else if (event.jaxis.value > 16000) {
-					game->dir_x = 0;
-					game->dir_x += PLAYER_SPEED;
+					game->player.dir_x = 0;
+					game->player.dir_x += PLAYER_SPEED;
 				} else if (event.jaxis.value > 6400) {
-					game->dir_x = 0;
-					game->dir_x += PLAYER_SPEED / 2;
+					game->player.dir_x = 0;
+					game->player.dir_x += PLAYER_SPEED / 2;
 				} else
-					game->dir_x = 0;
+					game->player.dir_x = 0;
 				break;
 			case 1: /* Up - Down stick axis. */
 				if (event.jaxis.value < -16000) {
-					game->dir_y = 0;
-					game->dir_y -= PLAYER_SPEED;
+					game->player.dir_y = 0;
+					game->player.dir_y -= PLAYER_SPEED;
 				} else if (event.jaxis.value < -6400) {
-					game->dir_y = 0;
-					game->dir_y -= PLAYER_SPEED / 2;
+					game->player.dir_y = 0;
+					game->player.dir_y -= PLAYER_SPEED / 2;
 				} else if (event.jaxis.value > 16000) {
-					game->dir_y = 0;
-					game->dir_y += PLAYER_SPEED;
+					game->player.dir_y = 0;
+					game->player.dir_y += PLAYER_SPEED;
 				} else if (event.jaxis.value > 6400) {
-					game->dir_y = 0;
-					game->dir_y += PLAYER_SPEED / 2;
+					game->player.dir_y = 0;
+					game->player.dir_y += PLAYER_SPEED / 2;
 				} else
-					game->dir_y = 0;
+					game->player.dir_y = 0;
 				break;
 			}
 		break;

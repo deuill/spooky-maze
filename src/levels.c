@@ -41,7 +41,7 @@ void generate_level(game_data *game)
 	char tmp, filename[256];
 
 	/* Choose a random text file. */
-	sprintf(filename, "%s%s-%d.txt", game->datadir, "/levels/level",  rand() % game->num_levels);
+	snprintf(filename, 256, "%s%s-%d.txt", game->datadir, "/levels/level",  rand() % game->num_levels);
 
 	/* Load the text file. */
 	level = fopen(filename, "r");
@@ -112,10 +112,10 @@ void set_goodies(game_data *game)
 		x = rand() % LEVEL_W, y = rand() % LEVEL_H;
 		if (game->level[y][x] == TILE_FLOOR) {
 			game->level[y][x] = TILE_GOODIE;
-			game->goodie[i].x = x * TILE_SIZE + (TILE_SIZE / 4);
-			game->goodie[i].y = y * TILE_SIZE + (TILE_SIZE / 4);
-			game->goodie[i].w = TILE_SIZE / 2;
-			game->goodie[i].h = TILE_SIZE / 2;
+			game->goodie[i].rect.x = x * TILE_SIZE + (TILE_SIZE / 4);
+			game->goodie[i].rect.y = y * TILE_SIZE + (TILE_SIZE / 4);
+			game->goodie[i].rect.w = TILE_SIZE / 2;
+			game->goodie[i].rect.h = TILE_SIZE / 2;
 		} else
 			--i;
 	}
@@ -129,8 +129,8 @@ void set_player(game_data *game)
 	for (y = 0; y < LEVEL_H; y++) {
 		if (game->level[y][0] == TILE_DOOR) {
 			game->level[y][0] = TILE_UNWALKABLE;
-			game->player.y = y * TILE_SIZE;
-			game->player.x = 0;
+			game->player.rect.y = y * TILE_SIZE;
+			game->player.rect.x = 0;
 			break;
 		}
 	}

@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdbool.h>
 #include <dirent.h>
 #include <time.h>
 #include <SDL.h>
@@ -21,11 +20,11 @@ int terminate(int code)
 
 void usage(void)
 {
-	printf("Usage: spooky-maze -d [datadir]\n");
-	printf("\t-d, --datadir:\n\t\tDirectory where data files reside.\n");
-	printf("\t-f, --fullscreen:\n\t\tStart game in fullscreen.\n");
-	printf("\t-s, --size:\n\t\tSize of game screen (example usage: '-s 800x600').\n");
-	printf("\t-h, --help:\n\t\tDisplay this text.\n");
+	printf(	"Usage: spooky-maze [OPTION]...\n"
+		"\t-d, --datadir:\n\t\tDirectory where data files reside.\n"
+		"\t-f, --fullscreen:\n\t\tStart game in fullscreen.\n"
+		"\t-s, --size:\n\t\tSize of game screen (example usage: '-s 800x600').\n"
+		"\t-h, --help:\n\t\tDisplay this text.\n");
 	exit(1);
 }
 
@@ -49,7 +48,7 @@ int main(int argc, char *argv[])
 			if (argv[i + 1] == NULL || argv[i + 1][0] == '-') {
 				printf("Error: No directory specified after '%s'!\n", argv[i]);
 				usage();
-			} else if (tmp_dir = opendir(argv[++i])) {
+			} else if ((tmp_dir = opendir(argv[++i]))) {
 				closedir(tmp_dir);
 				game.datadir = argv[i];
 			} else {
@@ -87,7 +86,7 @@ int main(int argc, char *argv[])
 
 	/* Count number of levels. */
 	game.num_levels = 0;
-	sprintf(dirname, "%s%s", game.datadir, "/levels/");
+	snprintf(dirname, 256, "%s%s", game.datadir, "/levels/");
 
 	tmp_dir = opendir(dirname);
 	if (tmp_dir == NULL) {
@@ -142,9 +141,9 @@ int main(int argc, char *argv[])
 
 	game.camera.w = game.screen_w;
 	game.camera.h = game.screen_h;
-	game.player.w = ENTITY_SIZE;
-	game.player.h = ENTITY_SIZE;
-	game.dir_x = 0, game.dir_y = 0;
+	game.player.rect.w = ENTITY_SIZE;
+	game.player.rect.h = ENTITY_SIZE;
+	game.player.dir_x = 0, game.player.dir_y = 0;
 
 	/* TEMP */
 	game.black = SDL_MapRGB(game.screen->format, 0x00, 0x00, 0x00);
@@ -155,12 +154,13 @@ int main(int argc, char *argv[])
 	game.yellow = SDL_MapRGB(game.screen->format, 0xFF, 0xFA, 0x00);
 
 	for (;;) {
-		game.lives = 3;
 		game.score = 0;
-		game.dead = false;
 		game.cur_level = 1;
 		game.score_scale = 10000;
 		game.level_cleared = true;
+
+		game.player.lives = 3;
+		game.player.dead = false;
 
 		game.num_zombies = 6;
 		game.num_goodies = 12;
@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
 				handle_input(&game);
 
 				/* Do not attempt to move player if no actual input has taken place. */
-				if (game.dir_x != 0 || game.dir_y != 0)
+				if (game.player.dir_x != 0 || game.player.dir_y != 0)
 					move_player(&game);
 
 				/* Check if we cleared the stage, and start a new level if we did. */
@@ -204,11 +204,11 @@ int main(int argc, char *argv[])
 
 				/* Update the remaining time since for this stage and check for timeout. */
 				game.time = 75 - (end_time - level_time) / 1000;
-				if (game.time == 0)
-					game.dead = true;
+				//~ if (game.time == 0)
+					//~ game.player.dead = true;
 
 				/* Check if we died (by zombie or timeout). */
-				if (game.dead)
+				if (game.player.dead)
 					break;
 
 				/* Update and draw screen elements. */
@@ -221,9 +221,9 @@ int main(int argc, char *argv[])
 
 			/* Level end. */
 
-			if (game.dead) {
-				game.lives--;
-				game.dead = false;
+			if (game.player.dead) {
+				game.player.lives--;
+				game.player.dead = false;
 				/* Remove 200 score for each level */
 				game.score -= game.cur_level * 200;
 				if (game.score < 0)
@@ -234,14 +234,14 @@ int main(int argc, char *argv[])
 				else
 					printf("You were eaten! Yum!\n");
 
-				if (game.lives == 0)
+				if (game.player.lives == 0)
 					break;
 			} else if (game.level_cleared) {
 				/* For each second remaining in the timer, give us 50 points. */
 				game.score += game.time * 50;
 				/* Give us 1 life every 10000 score. */
 				if (game.score / game.score_scale == 1) {
-					game.lives += game.score / game.score_scale;
+					game.player.lives += game.score / game.score_scale;
 					game.score_scale += 10000;
 				}
 				game.cur_level++;

@@ -80,11 +80,11 @@ void load_font(game_data *game)
 	char font_file[256];
 
 	/* Load font for menus etc. */
-	if (SCREEN_H <= 320) {
-		sprintf(font_file, "%s%s", DATADIR, "data/graphics/font-320.png");
+	if (game->screen_h <= 320) {
+		snprintf(font_file, 256, "%s%s", game->datadir, "/graphics/font-320.png");
 		game->graphics.font = load_image(font_file);
 	} else {
-		sprintf(font_file, "%s%s", DATADIR, "data/graphics/font-640.png");
+		snprintf(font_file, 256, "%s%s", game->datadir, "/graphics/font-640.png");
 		game->graphics.font = load_image(font_file);
 	}
 }
@@ -122,36 +122,36 @@ void update_text(game_data *game)
 	if (goodies != game->num_goodies) {
 		goodies = game->num_goodies;
 		if (goodies == 0)
-			sprintf(goodies_text, "%s", "Door open!");
+			snprintf(goodies_text, 16, "%s", "Door open!");
 		else
-			sprintf(goodies_text, "%s%d", "Goodies:", game->num_goodies);
+			snprintf(goodies_text, 16, "%s%d", "Goodies:", game->num_goodies);
 	}
 
-	draw_text(&(*game), goodies_text, (SCREEN_W / 2) - (SCREEN_W / 6), SCREEN_H - TILE_SIZE);
+	draw_text(game, goodies_text, (game->screen_w / 2) - (game->screen_w / 6), game->screen_h - TILE_SIZE);
 
 	/* Top left: Number of lives remaining. */
-	if (lives != game->lives) {
-		lives = game->lives;
-		sprintf(lives_text, "%s%d", "Lives:", game->lives);
+	if (lives != game->player.lives) {
+		lives = game->player.lives;
+		snprintf(lives_text, 16, "%s%d", "Lives:", game->player.lives);
 	}
 
-	draw_text(&(*game), lives_text, SCREEN_W - (SCREEN_W / 4) - 5 , 5);
+	draw_text(game, lives_text, game->screen_w - (game->screen_w / 4) - 5 , 5);
 
 	/* Top Right: Current score. */
 	if (score != game->score) {
 		score = game->score;
-		sprintf(score_text, "%s%d", "Score:", game->score);
+		snprintf(score_text, 16, "%s%d", "Score:", game->score);
 	}
 
-	draw_text(&(*game), score_text, 5 , 5);
+	draw_text(game, score_text, 5 , 5);
 
 	/* Top center: Time remaining. */
 	if (time != game->time) {
 		time = game->time;
-		sprintf(time_text, "%s%d", "Time:", game->time);
+		snprintf(time_text, 16, "%s%d", "Time:", game->time);
 	}
 
-	draw_text(&(*game), time_text, (SCREEN_W / 2) - (SCREEN_W / 8), 5);
+	draw_text(game, time_text, (game->screen_w / 2) - (game->screen_w / 8), 5);
 }
 
 void update_screen(game_data *game)
@@ -160,20 +160,20 @@ void update_screen(game_data *game)
 
 	/* Update/animate goodies. */
 	for (i = 0; i < game->num_goodies; i++)
-		SDL_FillRect(game->world, &(game->goodie[i]), game->blue);
+		SDL_FillRect(game->world, &(game->goodie[i].rect), game->blue);
 
 	/* Update/animate zombies. */
 	for (i = 0; i < game->num_zombies; i++)
 		SDL_FillRect(game->world, &(game->zombie[i].rect), game->yellow);
 
 	/* Update/animate player. */
-	SDL_FillRect(game->world, &(game->player), game->red);
+	SDL_FillRect(game->world, &(game->player.rect), game->red);
 
 	/* Copy from 'world' to 'screen' using 'camera' as a viewport. */
 	SDL_BlitSurface(game->world, &game->camera, game->screen, NULL);
 
 	/* Update on-screen info text. */
-	update_text(&(*game));
+	update_text(game);
 
 	SDL_Flip(game->screen);
 }
