@@ -1,7 +1,7 @@
 #ifndef ZOMBIE_H
 #define ZOMBIE_H
 
-#define ZOMBIE_SPEED 160 /* Walking speed of zombies in pixels per second. */
+#define ZOMBIE_SPEED 140 /* Walking speed of zombies in pixels per second. */
 
 #define ZOMBIE(i)    game->zombie[i]			 /* Current zombie. */
 #define ZOMBIE_X(i) (game->zombie[i].rect.x / TILE_SIZE) /* Current zombie position in     */
@@ -17,7 +17,7 @@
 struct list {
 	int x, y;		/* The node's location on the X / Y axis. */
 	int f, g, h;		/* Information about the node, as per the A* algoarithm. */
-	int dropped;		/* Have we already walked this node? */
+	bool dropped;		/* Have we already walked this node? */
 	struct list *parent; /* The parent node for each node. */
 };
 

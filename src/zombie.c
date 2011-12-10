@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdbool.h>
 #include <SDL.h>
 
 #include "game.h"
@@ -243,8 +242,8 @@ void move_zombies(game_data *game)
 
 			/* Check if we have collided with the player. */
 			if (abs(PLAYER_X - ZOMBIE_X(i)) <= 1 && abs(PLAYER_Y - ZOMBIE_Y(i)) <= 1)
-				if (detect_collision(ZOMBIE(i).rect, game->player)) {
-					game->dead = true;
+				if (detect_collision(ZOMBIE(i).rect, game->player.rect)) {
+					game->player.dead = true;
 					return;
 				}
 
@@ -262,7 +261,9 @@ void move_zombies(game_data *game)
 					ZOMBIE(i).dest_x = 0, ZOMBIE(i).dest_y = 0;
 					goto random;
 				/* Move to last known location if player is out of sight. */
-				} else if (ZOMBIE(i).num_nodes == 0) {
+				} else if ((ZOMBIE(i).num_nodes == 0) &&
+					     (ZOMBIE(i).dest_x > 0) &&
+					     (ZOMBIE(i).dest_y > 0)) {
 					ZOMBIE(i).num_nodes = find_path(&ZOMBIE(i), game->level);
 
 					/* Set a random destination if we can't reach our
@@ -274,7 +275,8 @@ void move_zombies(game_data *game)
 				}
 			}
 
-			if ((ZOMBIE(i).num_nodes == 0) && (game->level[PLAYER_Y][PLAYER_X] == TILE_FLOOR)) {
+			if ((ZOMBIE(i).num_nodes == 0) && (game->level[PLAYER_Y][PLAYER_X] == TILE_FLOOR) &&
+			     (ZOMBIE(i).dest_x > 0) && (ZOMBIE(i).dest_y > 0)) {
 				/* Reset X and Y movement speed if zeroed out */
 				if (move_x == 0)
 					move_x = (int) (ZOMBIE_SPEED * ((float) game->delta_time / 1000.0f));
@@ -523,7 +525,7 @@ void move_zombies(game_data *game)
 
 			/* Be biased toward pre-existing destinations, used for chasing
 			 * the player after losing sight. */
-			if (ZOMBIE(i).dest_x != 0 && ZOMBIE(i).dest_y != 0) {
+			if (ZOMBIE(i).dest_x > 0 && ZOMBIE(i).dest_y > 0) {
 				if (ZOMBIE(i).dest_x - ZOMBIE_X(i) > 0)
 					x = (rand() % 10);
 				else if (ZOMBIE(i).dest_x - ZOMBIE_X(i) < 0)
