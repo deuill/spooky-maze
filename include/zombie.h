@@ -34,7 +34,7 @@ int find_path(struct npc *zombie, char level[LEVEL_H][LEVEL_W]);
  *                Returns 'true' or 'false', if elements were found to be visible to
  *                each other or not, respectively.
  */
-int line_of_sight(int src_x, int src_y, int dst_x, int dst_y, char level[LEVEL_H][LEVEL_W]);
+int line_of_sight(int src_x, int src_y, int dest_x, int dest_y, char level[LEVEL_H][LEVEL_W]);
 
 /* move_zombies: Move zombies through level, chasing the player if found
  *               inside a radius of 5 squares around the zombie.

@@ -172,20 +172,20 @@ int find_path(struct npc *zombie, char level[LEVEL_H][LEVEL_W])
 	return i - 2;
 }
 
-int line_of_sight(int src_x, int src_y, int dst_x, int dst_y, char level[LEVEL_H][LEVEL_W])
+int line_of_sight(int src_x, int src_y, int dest_x, int dest_y, char level[LEVEL_H][LEVEL_W])
 {
 	int x = src_x, y = src_y;
 
 	/* Move towards the destination element. */
-	while (x != dst_x || y != dst_y) {
-		if (x < dst_x)
+	while (x != dest_x || y != dest_y) {
+		if (x < dest_x)
 			x++;
-		else if (x > dst_x)
+		else if (x > dest_x)
 			x--;
 
-		if (y < dst_y)
+		if (y < dest_y)
 			y++;
-		else if (y > dst_y)
+		else if (y > dest_y)
 			y--;
 
 		switch (level[y][x]) {
