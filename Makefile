@@ -12,7 +12,7 @@ $(PROGRAM): $(OBJECTS)
 	$(CC) $(LDFLAGS) $(LIBS) $(OBJECTS) -o $@
 
 .c.o:
-	$(CC) -g $(CFLAGS) $(INCS) -c $< -o $@
+	$(CC) -g -Wall -Wno-switch $(CFLAGS) $(INCS) -c $< -o $@
 
 install:
 	install -d $(DESTDIR)/usr/bin
