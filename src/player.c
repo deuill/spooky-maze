@@ -30,7 +30,7 @@ bool detect_collision(SDL_Rect player, SDL_Rect wall)
 	return false;
 }
 
-void move_player(game_data *game)
+void move_player(struct game_data *game)
 {
 	SDL_Rect tmp;			/* Used for collision detection. */
 	int move_x, move_y;		/* Used for holding our direction temporarily. */
@@ -50,21 +50,21 @@ void move_player(game_data *game)
 		case TILE_EXIT:
 			/* You have cleared this stage, congratulations! */
 			if (detect_collision(game->player.rect, game->wall[y][x])) {
-				clear_entity(game, game->player.rect);
+				clear_entity(game, &(game->player));
 				game->level_cleared = true;
 			}
 			break;
 		case TILE_GOODIE:
 			/* Find which goodie in the 'goodies' array we're colliding with. */
 			for (i = 0; i < game->num_goodies; i++)
-				if ((game->goodie[i].rect.x / TILE_SIZE == x) && \
-				    (game->goodie[i].rect.y / TILE_SIZE == y))
+				if ((game->goodie[i].rect.x / TILE_SIZE == x) && (game->goodie[i].rect.y / TILE_SIZE == y))
 					break;
+
 			/* Once we collide with the goodie, clear the goodie, rearrange
 			 * the goodies array and reduce the number of goodies in the level. */
 			if (detect_collision(game->player.rect, game->goodie[i].rect)) {
-				clear_entity(game, game->goodie[i].rect);
-				game->goodie[i].rect = game->goodie[game->num_goodies - 1].rect;
+				clear_entity(game, (struct pc *) &(game->goodie[i]));
+				game->goodie[i] = game->goodie[game->num_goodies - 1];
 				game->level[y][x] = TILE_FLOOR;
 				game->num_goodies--;
 				game->score += 100;
@@ -176,28 +176,30 @@ void move_player(game_data *game)
 	else if ((tmp.x + tmp.w >= LEVEL_W * TILE_SIZE) && move_x > 0)
 		move_x = (LEVEL_W * TILE_SIZE) - (game->player.rect.x + game->player.rect.w);
 
-	clear_entity(game, game->player.rect);
+	clear_entity(game, &(game->player));
 
 	game->player.rect.x += move_x;
 	game->player.rect.y += move_y;
 
+	convert_iso(&(game->player));
+
 	set_camera(game);
 }
 
-void set_camera(game_data *game)
+void set_camera(struct game_data *game)
 {
 	/* Keep the camera centered over our player. */
-	game->camera.x = (game->player.rect.x + ENTITY_SIZE / 2) - game->screen_w / 2;
-	game->camera.y = (game->player.rect.y + ENTITY_SIZE / 2) - game->screen_h / 2;
+	game->camera.x = (game->player.iso_x + ENTITY_W / 2) - game->screen_w / 2;
+	game->camera.y = (game->player.iso_y + ENTITY_H / 2) - game->screen_h / 2;
 
 	/* Do not go out of bounds. */
 	if (game->camera.x < 0)
 		game->camera.x = 0;
-	else if (game->camera.x > (LEVEL_W * TILE_SIZE) - game->camera.w)
-		game->camera.x = (LEVEL_W * TILE_SIZE) - game->camera.w;
+	else if (game->camera.x > (LEVEL_W * (TILE_SIZE / 2) + LEVEL_H * (TILE_SIZE / 2)) - game->camera.w)
+		game->camera.x = (LEVEL_W * (TILE_SIZE / 2) + LEVEL_H * (TILE_SIZE / 2)) - game->camera.w;
 
 	if (game->camera.y < 0)
 		game->camera.y = 0;
-	else if (game->camera.y > (LEVEL_H * TILE_SIZE) - game->camera.h)
-		game->camera.y = (LEVEL_H * TILE_SIZE) - game->camera.h;
+	else if (game->camera.y > (LEVEL_W * (TILE_SIZE / 4) + LEVEL_H * (TILE_SIZE / 4) + (TILE_SIZE / 2)) - game->camera.h)
+		game->camera.y = (LEVEL_W * (TILE_SIZE / 4) + LEVEL_H * (TILE_SIZE / 4) + (TILE_SIZE / 2)) - game->camera.h;
 }

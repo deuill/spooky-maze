@@ -6,16 +6,58 @@
 #include "graphics.h"
 #include "levels.h"
 
-void clear_entity(game_data *game, SDL_Rect entity)
+void clear_entity(struct game_data *game, struct pc *entity)
 {
-	SDL_FillRect(game->world, &entity, game->black);
+	SDL_Rect tmp;
+
+	tmp.x = entity->iso_x, tmp.y = entity->iso_y;
+	tmp.w = entity->rect.w, tmp.h = entity->rect.h;
+
+	SDL_BlitSurface(entity->bg, NULL, game->world, &tmp);
 }
 
-void draw_level(game_data *game)
+void convert_iso(struct pc *entity)
+{
+	entity->iso_x = ((TILE_SIZE / 2) * (LEVEL_H - 1)) + ((entity->rect.x / 2) - (entity->rect.y / 2)) + ((TILE_SIZE - entity->rect.w) / 2);
+	entity->iso_y = (entity->rect.x / 4) + (entity->rect.y / 4) + ((TILE_SIZE - entity->rect.h) / 2);
+}
+
+void draw_entity(struct game_data *game, const int entity_type, struct pc *entity)
+{
+	SDL_Rect tmp, offset;
+
+	tmp.x = entity->iso_x, tmp.y = entity->iso_y;
+	tmp.w = entity->rect.w, tmp.h = entity->rect.h;
+
+	/* Animation offset within the sprite. */
+	offset.x = 0, offset.y = 0;
+	offset.w = entity->rect.w, offset.h = entity->rect.h;
+
+	/* Draw entity. */
+	switch (entity_type) {
+		case ENTITY_PLAYER:
+			SDL_BlitSurface(game->graphics.player, &offset, game->world, &tmp);
+			break;
+		case ENTITY_ZOMBIE:
+			SDL_BlitSurface(game->graphics.zombie, &offset, game->world, &tmp);
+			break;
+		case ENTITY_GOODIE:
+			SDL_BlitSurface(game->graphics.goodie, &offset, game->world, &tmp);
+			break;
+	}
+}
+
+void draw_level(struct game_data *game)
 {
 	int x, y;
+	SDL_Rect tile;
+
+	tile.w = tile.h = TILE_SIZE;
 
 	for (y = 0; y < LEVEL_H; y++) {
+		tile.x = (tile.w / 2) * (LEVEL_H - (1 + y));
+		tile.y = (tile.h / 4) * y;
+
 		for (x = 0; x < LEVEL_W; x++) {
 			switch (game->level[y][x]) {
 			case TILE_WALL:
@@ -24,7 +66,7 @@ void draw_level(game_data *game)
 				game->wall[y][x].x = x * TILE_SIZE;
 				game->wall[y][x].y = y * TILE_SIZE;
 
-				SDL_FillRect(game->world, &(game->wall[y][x]), game->white);
+				draw_tile(game, TILE_WALL, tile);
 				break;
 			case TILE_DOOR: /* Behaves like a wall for collision purposes. */
 				game->wall[y][x].w = TILE_SIZE;
@@ -50,14 +92,17 @@ void draw_level(game_data *game)
 				game->wall[y][x].x = x * TILE_SIZE;
 				game->wall[y][x].y = y * TILE_SIZE;
 
-				SDL_FillRect(game->world, &(game->wall[y][x]), game->black);
+				draw_tile(game, TILE_FLOOR, tile);
 				break;
 			}
+
+			tile.x += tile.w / 2;
+			tile.y += tile.h / 4;
 		}
 	}
 }
 
-void draw_text(game_data *game, const char *text, int pos_x, int pos_y)
+void draw_text(struct game_data *game, const char *text, int pos_x, int pos_y)
 {
 	int i;
 	SDL_Rect font, offset;
@@ -75,18 +120,73 @@ void draw_text(game_data *game, const char *text, int pos_x, int pos_y)
 	}
 }
 
-void load_font(game_data *game)
+void draw_tile(struct game_data *game, const int tile_type, SDL_Rect tile)
 {
-	char font_file[256];
+	SDL_Rect offset;
+
+	offset.y = 0;
+	offset.w = tile.w, offset.h = tile.h;
+
+	switch (tile_type) {
+		case TILE_FLOOR:
+			offset.x = 0;
+			break;
+		case TILE_WALL:
+			offset.x = tile.w;
+			break;
+	}
+
+	SDL_BlitSurface(game->graphics.level, &offset, game->world, &tile);
+}
+
+SDL_Surface *init_surface(int width, int height)
+{
+	SDL_Surface *tmp, *optimized;
+
+	/* Initialize temporary surface. */
+	tmp = SDL_CreateRGBSurface(SDL_HWSURFACE | SDL_SRCCOLORKEY,
+			  width, height, SCREEN_DEPTH, 0, 0, 0, 0);
+
+	/* Optimize surface for rendering. */
+	optimized = SDL_DisplayFormat(tmp);
+	if (optimized == NULL) {
+		printf("Error: Initialization of surface failed!\nExiting...\n");
+		terminate(0);
+	} else {
+		SDL_FreeSurface(tmp);
+	}
+
+	return optimized;
+}
+
+void load_graphics(struct game_data *game)
+{
+	char tmp_file[256];
 
 	/* Load font for menus etc. */
 	if (game->screen_h <= 320) {
-		snprintf(font_file, 256, "%s%s", game->datadir, "/graphics/font-320.png");
-		game->graphics.font = load_image(font_file);
+		snprintf(tmp_file, 256, "%s%s", game->datadir, "/graphics/font-320.png");
+		game->graphics.font = load_image(tmp_file);
 	} else {
-		snprintf(font_file, 256, "%s%s", game->datadir, "/graphics/font-640.png");
-		game->graphics.font = load_image(font_file);
+		snprintf(tmp_file, 256, "%s%s", game->datadir, "/graphics/font-640.png");
+		game->graphics.font = load_image(tmp_file);
 	}
+
+	/* Load tileset for use in levels. */
+	snprintf(tmp_file, 256, "%s%s", game->datadir, "/graphics/level.png");
+	game->graphics.level = load_image(tmp_file);
+
+	/* Load sprites for player. */
+	snprintf(tmp_file, 256, "%s%s", game->datadir, "/graphics/player.png");
+	game->graphics.player = load_image(tmp_file);
+
+	/* Load sprites for zombies. */
+	snprintf(tmp_file, 256, "%s%s", game->datadir, "/graphics/zombie.png");
+	game->graphics.zombie = load_image(tmp_file);
+
+	/* Load sprites for goodies. */
+	snprintf(tmp_file, 256, "%s%s", game->datadir, "/graphics/goodie.png");
+	game->graphics.goodie = load_image(tmp_file);
 }
 
 SDL_Surface *load_image(const char *filename)
@@ -113,7 +213,17 @@ SDL_Surface *load_image(const char *filename)
 	return image;
 }
 
-void update_text(game_data *game)
+void store_entity(struct game_data *game, struct pc *entity)
+{
+	SDL_Rect tmp;
+
+	tmp.x = entity->iso_x, tmp.y = entity->iso_y;
+	tmp.w = entity->rect.w, tmp.h = entity->rect.h;
+
+	SDL_BlitSurface(game->world, &tmp, entity->bg, NULL);
+}
+
+void update_text(struct game_data *game)
 {
 	static int goodies, lives, score = 1, time;
 	static char goodies_text[16], lives_text[16], score_text[32], time_text[16];
@@ -127,7 +237,7 @@ void update_text(game_data *game)
 			snprintf(goodies_text, 16, "%s%d", "Goodies:", game->num_goodies);
 	}
 
-	draw_text(game, goodies_text, (game->screen_w / 2) - (game->screen_w / 6), game->screen_h - TILE_SIZE);
+	draw_text(game, goodies_text, (game->screen_w / 2) - (game->screen_w / 6), game->screen_h - 40);
 
 	/* Top left: Number of lives remaining. */
 	if (lives != game->player.lives) {
@@ -154,20 +264,29 @@ void update_text(game_data *game)
 	draw_text(game, time_text, (game->screen_w / 2) - (game->screen_w / 8), 5);
 }
 
-void update_screen(game_data *game)
+void update_screen(struct game_data *game)
 {
 	int i;
 
-	/* Update/animate goodies. */
+	/* Clear entities from screen. */
 	for (i = 0; i < game->num_goodies; i++)
-		SDL_FillRect(game->world, &(game->goodie[i].rect), game->blue);
+		clear_entity(game, (struct pc *) &(game->goodie[i]));
 
-	/* Update/animate zombies. */
+	/* Store entity backgrounds for next time we clear. */
 	for (i = 0; i < game->num_zombies; i++)
-		SDL_FillRect(game->world, &(game->zombie[i].rect), game->yellow);
+		store_entity(game, (struct pc *) &(game->zombie[i]));
 
-	/* Update/animate player. */
-	SDL_FillRect(game->world, &(game->player.rect), game->red);
+	if (game->player.dir_x != 0 || game->player.dir_y != 0)
+		store_entity(game, &(game->player));
+
+	/* Draw entities on screen. */
+	for (i = 0; i < game->num_goodies; i++)
+		draw_entity(game, ENTITY_GOODIE, (struct pc *) &(game->goodie[i]));
+
+	for (i = 0; i < game->num_zombies; i++)
+		draw_entity(game, ENTITY_ZOMBIE, (struct pc *) &(game->zombie[i]));
+
+	draw_entity(game, ENTITY_PLAYER, &(game->player));
 
 	/* Copy from 'world' to 'screen' using 'camera' as a viewport. */
 	SDL_BlitSurface(game->world, &game->camera, game->screen, NULL);

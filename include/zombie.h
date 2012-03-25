@@ -1,7 +1,7 @@
 #ifndef ZOMBIE_H
 #define ZOMBIE_H
 
-#define ZOMBIE_SPEED 140 /* Walking speed of zombies in pixels per second. */
+#define ZOMBIE_SPEED 180 /* Walking speed of zombies in pixels per second. */
 
 #define ZOMBIE(i)    game->zombie[i]			 /* Current zombie. */
 #define ZOMBIE_X(i) (game->zombie[i].rect.x / TILE_SIZE) /* Current zombie position in     */
@@ -39,6 +39,6 @@ int line_of_sight(int src_x, int src_y, int dest_x, int dest_y, char level[LEVEL
 /* move_zombies: Move zombies through level, chasing the player if found
  *               inside a radius of 5 squares around the zombie.
  */
-void move_zombies(game_data *game);
+void move_zombies(struct game_data *game);
 
 #endif

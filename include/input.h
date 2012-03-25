@@ -11,6 +11,6 @@
 /* handle_input: Reads events from the keyboard and modifies data in
  *               'game' accordingly.
  */
-void handle_input(game_data *game);
+void handle_input(struct game_data *game);
 
 #endif

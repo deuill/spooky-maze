@@ -13,18 +13,19 @@
 int terminate(int code)
 {
 	if (code != 0)
-		printf("Error: %s\nExiting...\n", SDL_GetError());
+		fprintf(stderr, "Error: %s\nExiting...\n", SDL_GetError());
 	SDL_Quit();
 	exit(code);
 }
 
-void usage(void)
+static void usage(void)
 {
 	printf(	"Usage: spooky-maze [OPTION]...\n"
-		"\t-d, --datadir:\n\t\tDirectory where data files reside.\n"
-		"\t-f, --fullscreen:\n\t\tStart game in fullscreen.\n"
-		"\t-s, --size:\n\t\tSize of game screen (example usage: '-s 800x600').\n"
-		"\t-h, --help:\n\t\tDisplay this text.\n");
+		"Options:\n"
+		" -d, --datadir\t\tDirectory where data files reside.\n"
+		" -f, --fullscreen\tStart game in fullscreen.\n"
+		" -s, --size\t\tSize of game screen (example usage: '-s 800x600').\n"
+		" -h, --help\t\tDisplay this text.\n");
 	exit(1);
 }
 
@@ -37,7 +38,7 @@ int main(int argc, char *argv[])
 	bool fullscreen = false;
 	struct dirent *tmp_file;
 
-	game_data game;
+	struct game_data game;
 	SDL_Surface *tmp;
 	Uint32 level_time;
 	Uint32 start_time, end_time;
@@ -46,15 +47,15 @@ int main(int argc, char *argv[])
 	for (i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "--datadir") == 0 || strcmp(argv[i], "-d") == 0) {
 			if (argv[i + 1] == NULL || argv[i + 1][0] == '-') {
-				printf("Error: No directory specified after '%s'!\n", argv[i]);
-				usage();
+				fprintf(stderr, "spooky-maze: Error: no directory specified after '%s'!\n", argv[i]);
+				exit(1);
 			} else if ((tmp_dir = opendir(argv[++i]))) {
 				closedir(tmp_dir);
 				game.datadir = argv[i];
 			} else {
 				closedir(tmp_dir);
-				printf("Error: Specified directory does not exist or cannot be accessed!\n");
-				usage();
+				fprintf(stderr, "spooky-maze: Error: directory '%s' does not exist or cannot be accessed!\n", argv[i]);
+				exit(1);
 			}
 		} else if (strcmp(argv[i], "--fullscreen") == 0 || strcmp(argv[i], "-f") == 0) {
 			fullscreen = true;
@@ -90,9 +91,8 @@ int main(int argc, char *argv[])
 
 	tmp_dir = opendir(dirname);
 	if (tmp_dir == NULL) {
-		printf("Error:\tCould not find data files in '%s'.\n"
-		       "\tPlease specify data directory via the '-d' command-line option.\n", dirname);
-		exit(1);
+		fprintf(stderr, "spooky-maze: Error: Could not find data files in '%s'.\n", dirname);
+		usage();
 	}
 
 	while ((tmp_file = readdir(tmp_dir)) != NULL) {
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
 
 	/* Initialize SDL and friends. */
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_TIMER) < 0) {
-		printf("Fatal error: %s!\nExiting...\n", SDL_GetError());
+		fprintf(stderr, "spooky-maze: Fatal error: %s!\nExiting...\n", SDL_GetError());
 		exit(2);
 	}
 
@@ -116,13 +116,20 @@ int main(int argc, char *argv[])
 			      SDL_HWSURFACE | SDL_DOUBLEBUF);
 
 	if (game.screen == NULL) {
-		printf("Fatal error: %s!\nExiting...\n", SDL_GetError());
+		fprintf(stderr, "spooky-maze: Fatal error: %s!\nExiting...\n", SDL_GetError());
 		exit(2);
 	}
 
 	if (SDL_NumJoysticks() > 0) {
-		SDL_JoystickEventState(SDL_ENABLE);
-		game.joystick = SDL_JoystickOpen(0);
+		for (i = 0; i < SDL_NumJoysticks(); i++) {
+			SDL_JoystickEventState(SDL_ENABLE);
+			game.joystick = SDL_JoystickOpen(i);
+
+			/* Some devices are erroneously presented as joysticks,
+			 * and we don't like that. */
+			if (SDL_JoystickNumAxes(game.joystick) > 20)
+				SDL_JoystickClose(game.joystick);
+		}
 	}
 
 	tmp = SDL_CreateRGBSurface(SDL_HWSURFACE | SDL_SRCCOLORKEY,
@@ -137,13 +144,10 @@ int main(int argc, char *argv[])
 
 	srand((unsigned int) time(NULL));
 
-	load_font(&game);
+	load_graphics(&game);
 
 	game.camera.w = game.screen_w;
 	game.camera.h = game.screen_h;
-	game.player.rect.w = ENTITY_SIZE;
-	game.player.rect.h = ENTITY_SIZE;
-	game.player.dir_x = 0, game.player.dir_y = 0;
 
 	/* TEMP */
 	game.black = SDL_MapRGB(game.screen->format, 0x00, 0x00, 0x00);
@@ -162,13 +166,7 @@ int main(int argc, char *argv[])
 		game.player.lives = 3;
 		game.player.dead = false;
 
-		game.num_zombies = 6;
-		game.num_goodies = 12;
-
 		for (;;) {
-			start_time = 0;
-			level_time = SDL_GetTicks();
-
 			if (game.level_cleared)
 				generate_level(&game);
 			else
@@ -176,12 +174,27 @@ int main(int argc, char *argv[])
 
 			game.level_cleared = false;
 
+			game.num_zombies = 6;
+			game.num_goodies = 12;
+
 			set_goodies(&game);
 			set_zombies(&game);
 			set_player(&game);
+
 			set_camera(&game);
 
 			draw_level(&game);
+
+			for (i = 0; i < game.num_goodies; i++)
+				store_entity(&(game), (struct pc *) &(game.goodie[i]));
+
+			for (i = 0; i < game.num_zombies; i++)
+				store_entity(&(game), (struct pc *) &(game.zombie[i]));
+
+			store_entity(&(game), &(game.player));
+
+			start_time = 0;
+			level_time = SDL_GetTicks();
 
 			for (;;) {
 				end_time = SDL_GetTicks();

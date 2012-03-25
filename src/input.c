@@ -5,7 +5,7 @@
 #include "input.h"
 #include "player.h"
 
-void handle_input(game_data *game)
+void handle_input(struct game_data *game)
 {
 	SDL_Event event;
 	Uint8 *key = SDL_GetKeyState(NULL);

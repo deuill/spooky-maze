@@ -219,7 +219,7 @@ int line_of_sight(int src_x, int src_y, int dest_x, int dest_y, char level[LEVEL
 	return true;
 }
 
-void move_zombies(game_data *game)
+void move_zombies(struct game_data *game)
 {
 	SDL_Rect tmp;
 	int x, y, i, n;
@@ -234,12 +234,12 @@ void move_zombies(game_data *game)
 	move_y = (int) (ZOMBIE_SPEED * ((float) game->delta_time / 1000.0f));
 
 	for (i = 0; i < game->num_zombies; i++) {
+		clear_entity(game, (struct pc *) &(ZOMBIE(i)));
+
 		/* 
 		 * Chase our player if found closer than 5 tiles away.
 		 */
 		if (abs(PLAYER_X - ZOMBIE_X(i)) <= 5 && abs(PLAYER_Y - ZOMBIE_Y(i)) <= 5) {
-			clear_entity(game, ZOMBIE(i).rect);
-
 			/* Check if we have collided with the player. */
 			if (abs(PLAYER_X - ZOMBIE_X(i)) <= 1 && abs(PLAYER_Y - ZOMBIE_Y(i)) <= 1)
 				if (detect_collision(ZOMBIE(i).rect, game->player.rect)) {
@@ -294,7 +294,7 @@ void move_zombies(game_data *game)
 					case TILE_WALL:
 					case TILE_UNWALKABLE:
 						if (detect_collision(tmp, game->wall[ZOMBIE_Y(i)][ZOMBIE_X(i) + 1]))
-							move_x = game->wall[ZOMBIE_Y(i)][ZOMBIE_X(i) + 1].x - (ZOMBIE(i).rect.x + ENTITY_SIZE);
+							move_x = game->wall[ZOMBIE_Y(i)][ZOMBIE_X(i) + 1].x - (ZOMBIE(i).rect.x + ENTITY_W);
 					}
 
 					/* Do not move through walls to the bottom right. */
@@ -302,7 +302,7 @@ void move_zombies(game_data *game)
 					case TILE_WALL:
 					case TILE_UNWALKABLE:
 						if (detect_collision(tmp, game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) + 1]))
-							move_x = game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) + 1].x - (ZOMBIE(i).rect.x + ENTITY_SIZE);
+							move_x = game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) + 1].x - (ZOMBIE(i).rect.x + ENTITY_W);
 					}
 
 					if (tmp.x > ZOMBIE(i).dest_x * TILE_SIZE)
@@ -339,7 +339,7 @@ void move_zombies(game_data *game)
 					case TILE_WALL:
 					case TILE_UNWALKABLE:
 						if (detect_collision(tmp, game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i)]))
-							move_y = game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i)].y - (ZOMBIE(i).rect.y + ENTITY_SIZE);
+							move_y = game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i)].y - (ZOMBIE(i).rect.y + ENTITY_H);
 					}
 
 					/* Do not move through walls to the bottom right. */
@@ -347,7 +347,7 @@ void move_zombies(game_data *game)
 					case TILE_WALL:
 					case TILE_UNWALKABLE:
 						if (detect_collision(tmp, game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) + 1]))
-							move_y = game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) + 1].y - (ZOMBIE(i).rect.y + ENTITY_SIZE);
+							move_y = game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) + 1].y - (ZOMBIE(i).rect.y + ENTITY_H);
 					}
 
 					if (tmp.y > ZOMBIE(i).dest_y * TILE_SIZE)
@@ -406,6 +406,8 @@ void move_zombies(game_data *game)
 					ZOMBIE(i).rect.y += move_y;
 				else if (ZOMBIE(i).rect.y > ZOMBIE(i).dest_y * TILE_SIZE)
 					ZOMBIE(i).rect.y -= move_y;
+
+				convert_iso((struct pc *) &(ZOMBIE(i)));
 			} else if (ZOMBIE(i).num_nodes == 0) {
 				ZOMBIE(i).dest_x = 0, ZOMBIE(i).dest_y = 0;
 				goto random;
@@ -416,8 +418,6 @@ void move_zombies(game_data *game)
 		 * Start moving if we do have a destination set.
 		 */
 		} else if (ZOMBIE(i).num_nodes > 0) {
-			clear_entity(game, ZOMBIE(i).rect);
-
 			move:
 
 			/* Check if we have reached the next node. */
@@ -517,6 +517,8 @@ void move_zombies(game_data *game)
 				else
 					ZOMBIE(i).rect.y += move_y;
 			}
+
+			convert_iso((struct pc *) &(ZOMBIE(i)));
 		/* 
 		 * We don't have a destination set, so let's set one +/- 10 squares away. 
 		 */

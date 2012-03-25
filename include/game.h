@@ -5,11 +5,16 @@
 #define SCREEN_H     480
 #define SCREEN_DEPTH 0
 
-#define TILE_SIZE 50 /* Size of tiles (walls, floors, etc.) in pixels. */
-#define ENTITY_SIZE (TILE_SIZE - (TILE_SIZE / 4)) /* Size of player and zombie rects in pixels. */
+#define TILE_SIZE 100 /* Size of tiles (walls, floors, etc.) in pixels. */
 
-#define LEVEL_W 40 /* Width and height */
-#define LEVEL_H 30 /* of the level in tiles. */
+#define ENTITY_W (TILE_SIZE / 2) /* Width and height of player */
+#define ENTITY_H (TILE_SIZE / 2) /* and zombie rects in pixels. */
+
+#define GOODIE_W (TILE_SIZE / 4) /* Width and height of goodie */
+#define GOODIE_H (TILE_SIZE / 4) /* rect in pixels. */
+
+#define LEVEL_W 40 /* Width and height of */
+#define LEVEL_H 30 /* the level in tiles. */
 
 /* Path for data files. Relative path by default, this can be set during
  * compilation and can be changed at run-time by supplying the '-d' option. */
@@ -28,11 +33,7 @@ typedef _Bool bool;
  */
 int terminate(int code);
 
-/* Usage: Displays usage information (command-line options) and exits.
- */
-void usage(void);
-
-typedef struct {
+struct game_data {
 	/* Various bookkeeping variables for the game. */
 	char *datadir;
 	int num_levels;
@@ -66,29 +67,41 @@ typedef struct {
 	Uint32 delta_time;	/* Time elapsed between frames. */
 
 	struct pc {
+		SDL_Rect rect;	/* Persistent rect for the player character. */
+		SDL_Surface *bg;	/* Background surface for redrawing etc. */
+		int iso_x, iso_y;	/* Location on map according to isometric projection. */
+
 		bool dead;		/* Are we dead? */
 		int lives;		/* Number of retries for the current session. */
 		int dir_x, dir_y;	/* Direction of player on the X / Y axis. */
-		SDL_Rect rect;	/* Persistent rect for the player character. */
 	} player;
 
 	int num_zombies;	/* Number of zombies in the level. */
 
 	struct npc {
-		struct node { int x, y; } path[64];
-		int dest_x, dest_y;	/* Destination on the X / Y axis. */
-		int num_nodes;		/* Number of nodes in path. */
 		SDL_Rect rect;	/* Persistent rect for the zombies. */
+		SDL_Surface *bg;	/* Background surface for redrawing etc. */
+		int iso_x, iso_y;	/* Location on map according to isometric projection. */
+
+		struct node { int x, y; } path[64];
+		int num_nodes;		/* Number of nodes in path. */
+		int dest_x, dest_y;	/* Destination on the X / Y axis. */
 	} zombie[16];
 
 	int num_goodies;	/* Number of goodies in the level. */
 	
-	struct object {
+	struct prize {
 		SDL_Rect rect;	/* Persistent rect for the goodies in the level. */
+		SDL_Surface *bg;	/* Background surface for redrawing etc. */
+		int iso_x, iso_y;	/* Location on map according to isometric projection. */
 	} goodie[16];
 
 	struct {
 		SDL_Surface *font;
+		SDL_Surface *level;
+		SDL_Surface *player;
+		SDL_Surface *zombie;
+		SDL_Surface *goodie;
 	} graphics;	/* Keeps track of graphics used throughout the game */
 
 	/* TEMP */
@@ -98,6 +111,6 @@ typedef struct {
 	Uint32 blue;
 	Uint32 brown;
 	Uint32 yellow;
-} game_data;
+};
 
 #endif

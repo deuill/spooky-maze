@@ -10,29 +10,34 @@
 #define TILE_GOODIE	'g'
 #define TILE_UNWALKABLE	'x'
 
+/* Entity type definitions. */
+#define ENTITY_PLAYER	'p'
+#define ENTITY_ZOMBIE	'z'
+#define ENTITY_GOODIE	'g'
+
 /* clear_level: Clear level array from data without regenerating.
  */
-void clear_level(game_data *game);
+void clear_level(struct game_data *game);
 
 /* generate_level: Generate random level.
  */
-void generate_level(game_data *game);
+void generate_level(struct game_data *game);
 
 /* open_exit: Clears the exit door on the right of the level once
  *            certain conditions have been met.
  */
-void open_exit(game_data *game);
+void open_exit(struct game_data *game);
 
 /* set_goodies: Place all goodies in random locations within the level.
  */
-void set_goodies(game_data *game);
+void set_goodies(struct game_data *game);
 
 /* set_player: Set position for our player in the level entrance.
  */
-void set_player(game_data *game);
+void set_player(struct game_data *game);
 
 /* set_zombies: Place zombies in random locations within the level.
  */
-void set_zombies(game_data *game);
+void set_zombies(struct game_data *game);
 
 #endif

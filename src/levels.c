@@ -5,7 +5,7 @@
 #include "graphics.h"
 #include "levels.h"
 
-void clear_level(game_data *game)
+void clear_level(struct game_data *game)
 {
 	int x, y;
 
@@ -34,7 +34,7 @@ void clear_level(game_data *game)
 	}
 }
 
-void generate_level(game_data *game)
+void generate_level(struct game_data *game)
 {
 	int x, y, i;
 	FILE *level;
@@ -91,20 +91,25 @@ void generate_level(game_data *game)
 	fclose(level);
 }
 
-void open_exit(game_data *game)
+void open_exit(struct game_data *game)
 {
 	int y;
+	//~ SDL_Rect tmp;
 
 	for (y = 0; y < LEVEL_H; y++) {
 		if (game->level[y][LEVEL_W - 1] == TILE_DOOR) {
 			game->level[y][LEVEL_W - 1] = TILE_EXIT;
-			clear_entity(game, game->wall[y][LEVEL_W - 1]);
+
+			//~ TODO: Draw for tiles.
+			//~ tmp = game->wall[y][LEVEL_W - 1];
+			//~ convert_iso(tmp.x, tmp.y, (int *) &(tmp.x), (int *) &(tmp.y));
+			//~ draw_tile(game, TILE_FLOOR, tmp);
 			break;
 		}
 	}
 }
 
-void set_goodies(game_data *game)
+void set_goodies(struct game_data *game)
 {
 	int x, y, i;
 
@@ -112,16 +117,20 @@ void set_goodies(game_data *game)
 		x = rand() % LEVEL_W, y = rand() % LEVEL_H;
 		if (game->level[y][x] == TILE_FLOOR) {
 			game->level[y][x] = TILE_GOODIE;
-			game->goodie[i].rect.x = x * TILE_SIZE + (TILE_SIZE / 4);
-			game->goodie[i].rect.y = y * TILE_SIZE + (TILE_SIZE / 4);
-			game->goodie[i].rect.w = TILE_SIZE / 2;
-			game->goodie[i].rect.h = TILE_SIZE / 2;
+			game->goodie[i].rect.x = (TILE_SIZE * x) + (rand() % TILE_SIZE);
+			game->goodie[i].rect.y = (TILE_SIZE * y) + (rand() % TILE_SIZE);
+			game->goodie[i].rect.w = GOODIE_W;
+			game->goodie[i].rect.h = GOODIE_H;
+
+			convert_iso((struct pc *) &(game->goodie[i]));
+
+			game->goodie[i].bg = init_surface(GOODIE_W, GOODIE_H);
 		} else
 			--i;
 	}
 }
 
-void set_player(game_data *game)
+void set_player(struct game_data *game)
 {
 	int y;
 
@@ -129,14 +138,22 @@ void set_player(game_data *game)
 	for (y = 0; y < LEVEL_H; y++) {
 		if (game->level[y][0] == TILE_DOOR) {
 			game->level[y][0] = TILE_UNWALKABLE;
-			game->player.rect.y = y * TILE_SIZE;
+			game->player.rect.y = TILE_SIZE * y;
 			game->player.rect.x = 0;
+			game->player.rect.w = ENTITY_W;
+			game->player.rect.h = ENTITY_H;
+			game->player.dir_x = 0, game->player.dir_y = 0;
+
+			convert_iso(&(game->player));
+
+			game->player.bg = init_surface(ENTITY_W, ENTITY_H);
+
 			break;
 		}
 	}
 }
 
-void set_zombies(game_data *game)
+void set_zombies(struct game_data *game)
 {
 	int x, y, i;
 	
@@ -145,12 +162,17 @@ void set_zombies(game_data *game)
 		if (game->level[y][x] == TILE_FLOOR) {
 			game->zombie[i].rect.x = x * TILE_SIZE;
 			game->zombie[i].rect.y = y * TILE_SIZE;
-			game->zombie[i].rect.w = ENTITY_SIZE;
-			game->zombie[i].rect.h = ENTITY_SIZE;
+			game->zombie[i].rect.w = ENTITY_W;
+			game->zombie[i].rect.h = ENTITY_H;
 			game->zombie[i].num_nodes = 0;
 			game->zombie[i].dest_x = 0;
 			game->zombie[i].dest_y = 0;
-		} else
+
+			convert_iso((struct pc *) &(game->zombie[i]));
+
+			game->zombie[i].bg = init_surface(ENTITY_W, ENTITY_H);
+		} else {
 			--i;
+		}
 	}
 }
