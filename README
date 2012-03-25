@@ -1,4 +1,4 @@
-                            Spooky Maze 0.1 (Alpha)
+                         Spooky Maze 0.1 (Alpha)
 
 Spooky Maze is a remake of the PSX/Net Yaroze game "Haunted Maze" which
 appeared on several demo disks that came bundled with Playstation magazines.
@@ -37,9 +37,8 @@ chosen randomly each new stage. The rules for building a level are these:
   * Make sure you add two 'd' characters on both left and right sides.
     These are your entrances and exits.
 
-  * Name your level "level-number", with "number" being one number higher
-    than the last one. It probably won't be loaded if you don't. You will
-    also need to modify NUM_LEVELS in "include/levels.h".
+  * Name your level "level-<number>.txt", with "<number>" being one number higher
+    than the last one. It won't be loaded if you don't.
 
   * Levels are randomly mirrored and flipped for that extra randomness,
     so your level won't look the same each time you load it. Probably.
