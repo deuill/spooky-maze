@@ -237,7 +237,7 @@ void update_text(struct game_data *game)
 			snprintf(goodies_text, 16, "%s%d", "Goodies:", game->num_goodies);
 	}
 
-	draw_text(game, goodies_text, (game->screen_w / 2) - (game->screen_w / 6), game->screen_h - 40);
+	draw_text(game, goodies_text, (game->screen_w / 2) - (((game->graphics.font->w / 10) * strlen(goodies_text)) / 2), game->screen_h - 40);
 
 	/* Top left: Number of lives remaining. */
 	if (lives != game->player.lives) {
@@ -245,7 +245,7 @@ void update_text(struct game_data *game)
 		snprintf(lives_text, 16, "%s%d", "Lives:", game->player.lives);
 	}
 
-	draw_text(game, lives_text, game->screen_w - (game->screen_w / 4) - 5 , 5);
+	draw_text(game, lives_text, game->screen_w - ((game->graphics.font->w / 10) * strlen(lives_text)) - 5 , 5);
 
 	/* Top Right: Current score. */
 	if (score != game->score) {
@@ -261,7 +261,7 @@ void update_text(struct game_data *game)
 		snprintf(time_text, 16, "%s%d", "Time:", game->time);
 	}
 
-	draw_text(game, time_text, (game->screen_w / 2) - (game->screen_w / 8), 5);
+	draw_text(game, time_text, (game->screen_w / 2) - (((game->graphics.font->w / 10) * strlen(time_text)) / 2), 5);
 }
 
 void update_screen(struct game_data *game)
