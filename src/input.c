@@ -5,7 +5,7 @@
 #include "input.h"
 #include "player.h"
 
-void handle_input(struct game_data *game)
+void input_handle(struct game_data *game)
 {
 	SDL_Event event;
 	Uint8 *key = SDL_GetKeyState(NULL);
@@ -34,7 +34,7 @@ void handle_input(struct game_data *game)
 				SDL_WM_ToggleFullScreen(game->screen);
 				break;
 			case SDLK_ESCAPE:
-				terminate(0);
+				game_terminate(0);
 			}
 		break;
 		case SDL_KEYUP:
@@ -142,7 +142,7 @@ void handle_input(struct game_data *game)
 			}
 		break;
 		case SDL_QUIT:
-			terminate(0);
+			game_terminate(0);
 		}
 	}
 }

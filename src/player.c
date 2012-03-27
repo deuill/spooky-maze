@@ -7,30 +7,7 @@
 #include "levels.h"
 #include "player.h"
 
-bool detect_collision(SDL_Rect player, SDL_Rect wall)
-{
-	if (player.x < wall.x) {
-		if (player.x + player.w > wall.x) {
-			if (player.y + player.h < wall.y)
-				return false;
-			else if (player.y > wall.y + wall.h)
-				return false;
-			else
-				return true;
-		}
-	} else if (player.x < wall.x + wall.w) {
-		if (player.y + player.h < wall.y)
-			return false;
-		else if (player.y > wall.y + wall.h)
-			return false;
-		else
-			return true;
-	}
-
-	return false;
-}
-
-void move_player(struct game_data *game)
+void player_move(struct game_data *game)
 {
 	SDL_Rect tmp;			/* Used for collision detection. */
 	int move_x, move_y;		/* Used for holding our direction temporarily. */
@@ -49,8 +26,8 @@ void move_player(struct game_data *game)
 		switch (game->level[y][x]) {
 		case TILE_EXIT:
 			/* You have cleared this stage, congratulations! */
-			if (detect_collision(game->player.rect, game->wall[y][x])) {
-				clear_entity(game, &(game->player));
+			if (level_collision(game->player.rect, game->wall[y][x])) {
+				graphics_entity_clear(game, &(game->player));
 				game->level_cleared = true;
 			}
 			break;
@@ -62,8 +39,8 @@ void move_player(struct game_data *game)
 
 			/* Once we collide with the goodie, clear the goodie, rearrange
 			 * the goodies array and reduce the number of goodies in the level. */
-			if (detect_collision(game->player.rect, game->goodie[i].rect)) {
-				clear_entity(game, (struct pc *) &(game->goodie[i]));
+			if (level_collision(game->player.rect, game->goodie[i].rect)) {
+				graphics_entity_clear(game, (struct pc *) &(game->goodie[i]));
 				game->goodie[i] = game->goodie[game->num_goodies - 1];
 				game->level[y][x] = TILE_FLOOR;
 				game->num_goodies--;
@@ -75,7 +52,7 @@ void move_player(struct game_data *game)
 				}
 				/* If we have removed all goodies, open the door. */
 				if (game->num_goodies == 0)
-					open_exit(game);
+					level_unlock(game);
 			}
 			break;
 		case TILE_DOOR: /* Treat the closed door as a wall and fall through. */
@@ -85,18 +62,18 @@ void move_player(struct game_data *game)
 				switch (position) {
 				case 1: /* Do not move through walls to the top-left diagonally. */
 					tmp.x += move_x, tmp.y += move_y;
-					if ((detect_collision(tmp, game->wall[y][x])) &&
+					if ((level_collision(tmp, game->wall[y][x])) &&
 					    (game->level[y + 1][x] != TILE_WALL) && (move_y < 0))
 						move_y = (game->wall[y][x].y + game->wall[y][x].h) - game->player.rect.y;
 					break;
 				case 4: /* Do not move through walls to the left. */
 					tmp.x += move_x;
-					if (detect_collision(tmp, game->wall[y][x]))
+					if (level_collision(tmp, game->wall[y][x]))
 						move_x = (game->wall[y][x].x + game->wall[y][x].w) - game->player.rect.x;
 					break;
 				case 7: /* Do not move through walls to the bottom-left from the right. */
 					tmp.x += move_x;
-					if ((detect_collision(tmp, game->wall[y][x])) &&
+					if ((level_collision(tmp, game->wall[y][x])) &&
 					    (game->wall[y][x].y < tmp.y + tmp.h))
 						move_x = (game->wall[y][x].x + game->wall[y][x].w) - game->player.rect.x;
 					break;
@@ -105,18 +82,18 @@ void move_player(struct game_data *game)
 				switch (position) {
 				case 3: /* Do not move through walls to the top-right diagonally. */
 					tmp.x += move_x, tmp.y += move_y;
-					if ((detect_collision(tmp, game->wall[y][x])) &&
+					if ((level_collision(tmp, game->wall[y][x])) &&
 					    (game->level[y + 1][x] != TILE_WALL) && (move_y < 0))
 						move_y = (game->wall[y][x].y + game->wall[y][x].h) - game->player.rect.y;
 					break;
 				case 6: /* Do not move through walls to the right. */
 					tmp.x += move_x;
-					if (detect_collision(tmp, game->wall[y][x]))
+					if (level_collision(tmp, game->wall[y][x]))
 						move_x = game->wall[y][x].x - (game->player.rect.x + game->player.rect.w);
 					break;
 				case 9: /* Do not move through walls to the bottom-right from the left. */
 					tmp.x += move_x;
-					if ((detect_collision(tmp, game->wall[y][x])) &&
+					if ((level_collision(tmp, game->wall[y][x])) &&
 					    (game->wall[y][x].y < tmp.y + tmp.h))
 						move_x = game->wall[y][x].x - (game->player.rect.x + game->player.rect.w);
 					break;
@@ -128,12 +105,12 @@ void move_player(struct game_data *game)
 				switch (position) {
 				case 2: /* Do not move through walls to the top. */
 					tmp.y += move_y;
-					if (detect_collision(tmp, game->wall[y][x]))
+					if (level_collision(tmp, game->wall[y][x]))
 						move_y = (game->wall[y][x].y + game->wall[y][x].h) - game->player.rect.y;
 					break;
 				case 3: /* Do not move through walls to the top-right from the bottom. */
 					tmp.y += move_y;
-					if ((detect_collision(tmp, game->wall[y][x])) &&
+					if ((level_collision(tmp, game->wall[y][x])) &&
 					    (game->wall[y][x].x < tmp.x + tmp.w))
 						move_y = (game->wall[y][x].y + game->wall[y][x].h) - game->player.rect.y;
 					break;
@@ -142,25 +119,25 @@ void move_player(struct game_data *game)
 				switch (position) {
 				case 7: /* Do not move through walls to the bottom-left diagonally. */
 					tmp.x += move_x, tmp.y += move_y;
-					if ((detect_collision(tmp, game->wall[y][x])) &&
+					if ((level_collision(tmp, game->wall[y][x])) &&
 					    (game->level[y][x + 1] != TILE_WALL) && (move_x < 0))
 						move_x = (game->wall[y][x].x + game->wall[y][x].w) - game->player.rect.x;
 					break;
 				case 8: /* Do not move through walls to the bottom. */
 					tmp.y += move_y;
-					if (detect_collision(tmp, game->wall[y][x]))
+					if (level_collision(tmp, game->wall[y][x]))
 						move_y = game->wall[y][x].y - (game->player.rect.y + game->player.rect.h);
 					break;
 				case 9: /* Do not move through walls to the bottom-right from the top. */
 					tmp.y += move_y;
-					if ((detect_collision(tmp, game->wall[y][x])) &&
+					if ((level_collision(tmp, game->wall[y][x])) &&
 					    (game->wall[y][x].x < tmp.x + tmp.w)) {
 						move_y = game->wall[y][x].y - (game->player.rect.y + game->player.rect.h);
 						break;
 					}
 					/* Do not move through walls to the bottom-right diagonally. */
 					tmp.x += move_x;
-					if ((detect_collision(tmp, game->wall[y][x])) &&
+					if ((level_collision(tmp, game->wall[y][x])) &&
 					    (game->level[y][x - 1] != TILE_WALL) && (move_x > 0))
 						move_x = game->wall[y][x].x - (game->player.rect.x + game->player.rect.w);
 					break;
@@ -176,17 +153,17 @@ void move_player(struct game_data *game)
 	else if ((tmp.x + tmp.w >= LEVEL_W * TILE_SIZE) && move_x > 0)
 		move_x = (LEVEL_W * TILE_SIZE) - (game->player.rect.x + game->player.rect.w);
 
-	clear_entity(game, &(game->player));
+	graphics_entity_clear(game, &(game->player));
 
 	game->player.rect.x += move_x;
 	game->player.rect.y += move_y;
 
-	convert_iso(&(game->player));
+	graphics_iso_convert(&(game->player));
 
-	set_camera(game);
+	player_camera_follow(game);
 }
 
-void set_camera(struct game_data *game)
+void player_camera_follow(struct game_data *game)
 {
 	/* Keep the camera centered over our player. */
 	game->camera.x = (game->player.iso_x + ENTITY_W / 2) - game->screen_w / 2;

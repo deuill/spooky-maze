@@ -28,10 +28,11 @@
 
 typedef _Bool bool;
 
-/* terminate: Shuts down SDL and exits cleanly, optionally emitting an
- *            error message if code != 0. Returns code to the system.
+/* 
+ * Shuts down SDL and exits cleanly, optionally emitting an error message
+ * if code != 0. Returns code to the system.
  */
-int terminate(int code);
+int game_terminate(int code);
 
 struct game_data {
 	/* Various bookkeeping variables for the game. */
@@ -47,7 +48,7 @@ struct game_data {
 	SDL_Joystick *joystick;
 
 	/* This array represents our level, and is automatically populated
-	 * by the generate_level function. Different characters correspond
+	 * by the level_generate function. Different characters correspond
 	 * to different tiles. */
 	char level[LEVEL_H][LEVEL_W];
 

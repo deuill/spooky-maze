@@ -8,9 +8,9 @@
 #define JOYSTICK_LEFT  15
 #define JOYSTICK_RIGHT 13
 
-/* handle_input: Reads events from the keyboard and modifies data in
- *               'game' accordingly.
+/* 
+ * Reads events from the keyboard and modifies data in 'game' accordingly.
  */
-void handle_input(struct game_data *game);
+void input_handle(struct game_data *game);
 
 #endif

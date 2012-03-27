@@ -15,29 +15,39 @@
 #define ENTITY_ZOMBIE	'z'
 #define ENTITY_GOODIE	'g'
 
-/* clear_level: Clear level array from data without regenerating.
+/* 
+ * Clear level array from data without regenerating.
  */
-void clear_level(struct game_data *game);
+void level_clear(struct game_data *game);
 
-/* generate_level: Generate random level.
+/* 
+ * Finds if 'entity' intersects 'wall' and returns true or false if it 
+ * does or doesn't, respectively.
  */
-void generate_level(struct game_data *game);
+bool level_collision(SDL_Rect entity, SDL_Rect wall);
 
-/* open_exit: Clears the exit door on the right of the level once
- *            certain conditions have been met.
+/* 
+ * Generate random level.
  */
-void open_exit(struct game_data *game);
+void level_generate(struct game_data *game);
 
-/* set_goodies: Place all goodies in random locations within the level.
+/* 
+ * Determine if element in position 'src_x', 'src_y' can see element in position
+ * 'dst_x', 'dst_y' and vice versa, using 'level' to determine obstructions.
+ * Positions are relative to indices in 'level'. Returns 'true' or 'false',
+ * if elements were found to be visible to each other or not, respectively.
  */
-void set_goodies(struct game_data *game);
+int level_tile_visible(int src_x, int src_y, int dest_x, int dest_y, char level[LEVEL_H][LEVEL_W]);
 
-/* set_player: Set position for our player in the level entrance.
+/* 
+ * Clears the exit door on the right of the level once certain conditions have been met.
  */
-void set_player(struct game_data *game);
+void level_unlock(struct game_data *game);
 
-/* set_zombies: Place zombies in random locations within the level.
+/* 
+ * Place entities (player, zombies, goodies) within the level.
  */
-void set_zombies(struct game_data *game);
+void level_entities_set(struct game_data *game);
+
 
 #endif

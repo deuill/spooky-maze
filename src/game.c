@@ -10,7 +10,7 @@
 #include "player.h"
 #include "zombie.h"
 
-int terminate(int code)
+int game_terminate(int code)
 {
 	if (code != 0)
 		fprintf(stderr, "Error: %s\nExiting...\n", SDL_GetError());
@@ -18,7 +18,7 @@ int terminate(int code)
 	exit(code);
 }
 
-static void usage(void)
+static void game_usage(void)
 {
 	printf(	"Usage: spooky-maze [OPTION]...\n"
 		"Options:\n"
@@ -63,17 +63,17 @@ int main(int argc, char *argv[])
 			if ((token = strtok(argv[++i], "x")) != NULL)
 				game.screen_w = atoi(token);
 			else
-				usage();
+				game_usage();
 			
 			if ((token = strtok(NULL, "x")) != NULL)
 				game.screen_h = atoi(token);
 			else
-				usage();
+				game_usage();
 
 			if (game.screen_w == 0 || game.screen_h == 0)
-				usage();
+				game_usage();
 		} else {
-			usage();
+			game_usage();
 		}
 	}
 
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
 	tmp_dir = opendir(dirname);
 	if (tmp_dir == NULL) {
 		fprintf(stderr, "spooky-maze: Error: Could not find data files in '%s'.\n", dirname);
-		usage();
+		game_usage();
 	}
 
 	while ((tmp_file = readdir(tmp_dir)) != NULL) {
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 
 	srand((unsigned int) time(NULL));
 
-	load_graphics(&game);
+	graphics_assets_load(&game);
 
 	game.camera.w = game.screen_w;
 	game.camera.h = game.screen_h;
@@ -168,30 +168,27 @@ int main(int argc, char *argv[])
 
 		for (;;) {
 			if (game.level_cleared)
-				generate_level(&game);
+				level_generate(&game);
 			else
-				clear_level(&game);
+				level_clear(&game);
 
 			game.level_cleared = false;
 
 			game.num_zombies = 6;
 			game.num_goodies = 12;
 
-			set_goodies(&game);
-			set_zombies(&game);
-			set_player(&game);
+			level_entities_set(&game);
+			player_camera_follow(&game);
 
-			set_camera(&game);
-
-			draw_level(&game);
+			graphics_level_draw(&game);
 
 			for (i = 0; i < game.num_goodies; i++)
-				store_entity(&(game), (struct pc *) &(game.goodie[i]));
+				graphics_entity_store(&(game), (struct pc *) &(game.goodie[i]));
 
 			for (i = 0; i < game.num_zombies; i++)
-				store_entity(&(game), (struct pc *) &(game.zombie[i]));
+				graphics_entity_store(&(game), (struct pc *) &(game.zombie[i]));
 
-			store_entity(&(game), &(game.player));
+			graphics_entity_store(&(game), &(game.player));
 
 			start_time = 0;
 			level_time = SDL_GetTicks();
@@ -202,18 +199,18 @@ int main(int argc, char *argv[])
 				start_time = SDL_GetTicks();
 
 				/* Listen to keyboard events. */
-				handle_input(&game);
+				input_handle(&game);
 
 				/* Do not attempt to move player if no actual input has taken place. */
 				if (game.player.dir_x != 0 || game.player.dir_y != 0)
-					move_player(&game);
+					player_move(&game);
 
 				/* Check if we cleared the stage, and start a new level if we did. */
 				if (game.level_cleared)
 					break;
 
 				/* Calculate paths and move zombies through level. */
-				move_zombies(&game);
+				zombie_move(&game);
 
 				/* Update the remaining time since for this stage and check for timeout. */
 				game.time = 75 - (end_time - level_time) / 1000;
@@ -225,7 +222,7 @@ int main(int argc, char *argv[])
 					break;
 
 				/* Update and draw screen elements. */
-				update_screen(&game);
+				graphics_screen_update(&game);
 
 				/* Try to normalize frame-rate to about 60 fps. */
 				if (game.delta_time < 16)

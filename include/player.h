@@ -6,18 +6,14 @@
 #define PLAYER_X (game->player.rect.x / TILE_SIZE) /* Current player position in */
 #define PLAYER_Y (game->player.rect.y / TILE_SIZE) /* relation to the 'level' array. */
 
-/* move_player: Moves player and handles collision.
+/* 
+ * Moves player and checks for collision using 'level_collision()'.
  */
-void move_player(struct game_data *game);
+void player_move(struct game_data *game);
 
-/* detect_collision: Finds if 'player' intersects 'wall' and returns true
- * 		     or false if it does or doesn't, respectively.
+/* 
+ * Centers 'game.camera' over our player with respect to the level boundaries.
  */
-bool detect_collision(SDL_Rect player, SDL_Rect wall);
-
-/* set_camera: Sets camera position in relation to our player and calls
- *             'draw_level()' to redraw the level around the player.
- */
-void set_camera(struct game_data *game);
+void player_camera_follow(struct game_data *game);
 
 #endif

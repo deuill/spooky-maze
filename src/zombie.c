@@ -7,7 +7,7 @@
 #include "player.h"
 #include "zombie.h"
 
-int find_path(struct npc *zombie, char level[LEVEL_H][LEVEL_W])
+int zombie_path_search(struct npc *zombie, char level[LEVEL_H][LEVEL_W])
 {
 	int x, y;
 	int position, i;
@@ -172,54 +172,7 @@ int find_path(struct npc *zombie, char level[LEVEL_H][LEVEL_W])
 	return i - 2;
 }
 
-int line_of_sight(int src_x, int src_y, int dest_x, int dest_y, char level[LEVEL_H][LEVEL_W])
-{
-	int x = src_x, y = src_y;
-
-	/* Move towards the destination element. */
-	while (x != dest_x || y != dest_y) {
-		if (x < dest_x)
-			x++;
-		else if (x > dest_x)
-			x--;
-
-		if (y < dest_y)
-			y++;
-		else if (y > dest_y)
-			y--;
-
-		switch (level[y][x]) {
-			case TILE_WALL:
-				return false;
-			case TILE_UNWALKABLE:
-				return false;
-		}
-	}
-
-	/* Move backwards towards the source element. */
-	while (x != src_x || y != src_y) {
-		if (x < src_x)
-			x++;
-		else if (x > src_x)
-			x--;
-
-		if (y < src_y)
-			y++;
-		else if (y > src_y)
-			y--;
-
-		switch (level[y][x]) {
-			case TILE_WALL:
-				return false;
-			case TILE_UNWALKABLE:
-				return false;
-		}
-	}
-
-	return true;
-}
-
-void move_zombies(struct game_data *game)
+void zombie_move(struct game_data *game)
 {
 	SDL_Rect tmp;
 	int x, y, i, n;
@@ -234,7 +187,7 @@ void move_zombies(struct game_data *game)
 	move_y = (int) (ZOMBIE_SPEED * ((float) game->delta_time / 1000.0f));
 
 	for (i = 0; i < game->num_zombies; i++) {
-		clear_entity(game, (struct pc *) &(ZOMBIE(i)));
+		graphics_entity_clear(game, (struct pc *) &(ZOMBIE(i)));
 
 		/* 
 		 * Chase our player if found closer than 5 tiles away.
@@ -242,7 +195,7 @@ void move_zombies(struct game_data *game)
 		if (abs(PLAYER_X - ZOMBIE_X(i)) <= 5 && abs(PLAYER_Y - ZOMBIE_Y(i)) <= 5) {
 			/* Check if we have collided with the player. */
 			if (abs(PLAYER_X - ZOMBIE_X(i)) <= 1 && abs(PLAYER_Y - ZOMBIE_Y(i)) <= 1)
-				if (detect_collision(ZOMBIE(i).rect, game->player.rect)) {
+				if (level_collision(ZOMBIE(i).rect, game->player.rect)) {
 					game->player.dead = true;
 					return;
 				}
@@ -250,7 +203,7 @@ void move_zombies(struct game_data *game)
 			/* Recalculate line of sight if the player has moved from the destination node. */
 			if (((ZOMBIE(i).dest_x != PLAYER_X) || (ZOMBIE(i).dest_y != PLAYER_Y)) &&
 			    (game->level[PLAYER_Y][PLAYER_X] == TILE_FLOOR)) {
-				if (line_of_sight(PLAYER_X, PLAYER_Y, ZOMBIE_X(i), ZOMBIE_Y(i), game->level)) {
+				if (level_tile_visible(PLAYER_X, PLAYER_Y, ZOMBIE_X(i), ZOMBIE_Y(i), game->level)) {
 					ZOMBIE(i).dest_x = PLAYER_X;
 					ZOMBIE(i).dest_y = PLAYER_Y;
 					ZOMBIE(i).num_nodes = 0;
@@ -264,7 +217,7 @@ void move_zombies(struct game_data *game)
 				} else if ((ZOMBIE(i).num_nodes == 0) &&
 					     (ZOMBIE(i).dest_x > 0) &&
 					     (ZOMBIE(i).dest_y > 0)) {
-					ZOMBIE(i).num_nodes = find_path(&ZOMBIE(i), game->level);
+					ZOMBIE(i).num_nodes = zombie_path_search(&ZOMBIE(i), game->level);
 
 					/* Set a random destination if we can't reach our
 					 * player, otherwise move to the chosen destination. */
@@ -293,7 +246,7 @@ void move_zombies(struct game_data *game)
 					switch (game->level[ZOMBIE_Y(i)][ZOMBIE_X(i) + 1]) {
 					case TILE_WALL:
 					case TILE_UNWALKABLE:
-						if (detect_collision(tmp, game->wall[ZOMBIE_Y(i)][ZOMBIE_X(i) + 1]))
+						if (level_collision(tmp, game->wall[ZOMBIE_Y(i)][ZOMBIE_X(i) + 1]))
 							move_x = game->wall[ZOMBIE_Y(i)][ZOMBIE_X(i) + 1].x - (ZOMBIE(i).rect.x + ENTITY_W);
 					}
 
@@ -301,7 +254,7 @@ void move_zombies(struct game_data *game)
 					switch (game->level[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) + 1]) {
 					case TILE_WALL:
 					case TILE_UNWALKABLE:
-						if (detect_collision(tmp, game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) + 1]))
+						if (level_collision(tmp, game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) + 1]))
 							move_x = game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) + 1].x - (ZOMBIE(i).rect.x + ENTITY_W);
 					}
 
@@ -314,7 +267,7 @@ void move_zombies(struct game_data *game)
 					switch (game->level[ZOMBIE_Y(i)][ZOMBIE_X(i) - 1]) {
 					case TILE_WALL:
 					case TILE_UNWALKABLE:
-						if (detect_collision(tmp, game->wall[ZOMBIE_Y(i)][ZOMBIE_X(i) - 1]))
+						if (level_collision(tmp, game->wall[ZOMBIE_Y(i)][ZOMBIE_X(i) - 1]))
 							move_x = ZOMBIE(i).rect.x - (game->wall[ZOMBIE_Y(i)][ZOMBIE_X(i) - 1].x + TILE_SIZE);
 					}
 
@@ -322,7 +275,7 @@ void move_zombies(struct game_data *game)
 					switch (game->level[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) - 1]) {
 					case TILE_WALL:
 					case TILE_UNWALKABLE:
-						if (detect_collision(tmp, game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) - 1]))
+						if (level_collision(tmp, game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) - 1]))
 							move_x = ZOMBIE(i).rect.x - (game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) - 1].x + TILE_SIZE);
 					}
 
@@ -338,7 +291,7 @@ void move_zombies(struct game_data *game)
 					switch (game->level[ZOMBIE_Y(i) + 1][ZOMBIE_X(i)]) {
 					case TILE_WALL:
 					case TILE_UNWALKABLE:
-						if (detect_collision(tmp, game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i)]))
+						if (level_collision(tmp, game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i)]))
 							move_y = game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i)].y - (ZOMBIE(i).rect.y + ENTITY_H);
 					}
 
@@ -346,7 +299,7 @@ void move_zombies(struct game_data *game)
 					switch (game->level[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) + 1]) {
 					case TILE_WALL:
 					case TILE_UNWALKABLE:
-						if (detect_collision(tmp, game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) + 1]))
+						if (level_collision(tmp, game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) + 1]))
 							move_y = game->wall[ZOMBIE_Y(i) + 1][ZOMBIE_X(i) + 1].y - (ZOMBIE(i).rect.y + ENTITY_H);
 					}
 
@@ -359,7 +312,7 @@ void move_zombies(struct game_data *game)
 					switch (game->level[ZOMBIE_Y(i) - 1][ZOMBIE_X(i)]) {
 					case TILE_WALL:
 					case TILE_UNWALKABLE:
-						if (detect_collision(tmp, game->wall[ZOMBIE_Y(i) - 1][ZOMBIE_X(i)]))
+						if (level_collision(tmp, game->wall[ZOMBIE_Y(i) - 1][ZOMBIE_X(i)]))
 							move_y = ZOMBIE(i).rect.y - (game->wall[ZOMBIE_Y(i) - 1][ZOMBIE_X(i)].y + TILE_SIZE);
 					}
 
@@ -367,7 +320,7 @@ void move_zombies(struct game_data *game)
 					switch (game->level[ZOMBIE_Y(i) - 1][ZOMBIE_X(i) + 1]) {
 					case TILE_WALL:
 					case TILE_UNWALKABLE:
-						if (detect_collision(tmp, game->wall[ZOMBIE_Y(i) - 1][ZOMBIE_X(i) + 1]))
+						if (level_collision(tmp, game->wall[ZOMBIE_Y(i) - 1][ZOMBIE_X(i) + 1]))
 							move_y = ZOMBIE(i).rect.y - (game->wall[ZOMBIE_Y(i) - 1][ZOMBIE_X(i) + 1].y + TILE_SIZE);
 					}
 
@@ -378,7 +331,7 @@ void move_zombies(struct game_data *game)
 				/* Do not move in space occupied by other zombies. */
 				for (n = 0; n < game->num_zombies; n++) {
 					if (n != i) {
-						if (detect_collision(tmp, game->zombie[n].rect)) {
+						if (level_collision(tmp, game->zombie[n].rect)) {
 							/* Stop moving if other zombie is in path */
 							if ((ZOMBIE(i).rect.x > game->zombie[n].rect.x + game->zombie[n].rect.w) &&
 							    (tmp.x < ZOMBIE(i).rect.x))
@@ -407,7 +360,7 @@ void move_zombies(struct game_data *game)
 				else if (ZOMBIE(i).rect.y > ZOMBIE(i).dest_y * TILE_SIZE)
 					ZOMBIE(i).rect.y -= move_y;
 
-				convert_iso((struct pc *) &(ZOMBIE(i)));
+				graphics_iso_convert((struct pc *) &(ZOMBIE(i)));
 			} else if (ZOMBIE(i).num_nodes == 0) {
 				ZOMBIE(i).dest_x = 0, ZOMBIE(i).dest_y = 0;
 				goto random;
@@ -450,7 +403,7 @@ void move_zombies(struct game_data *game)
 			/* Do not move in space occupied by other zombies. */
 			for (n = 0; n < game->num_zombies; n++) {
 				if (n != i) {
-					if (detect_collision(tmp, game->zombie[n].rect)) {
+					if (level_collision(tmp, game->zombie[n].rect)) {
 						/* Recalculate path if stuck against one another. */
 						if ((ZOMBIE(i).rect.x + ZOMBIE(i).rect.w < ZOMBIE(n).rect.x) &&
 						    (ZOMBIE(i).rect.x < ZOMBIE_NODE(i).x * TILE_SIZE) &&
@@ -518,7 +471,7 @@ void move_zombies(struct game_data *game)
 					ZOMBIE(i).rect.y += move_y;
 			}
 
-			convert_iso((struct pc *) &(ZOMBIE(i)));
+			graphics_iso_convert((struct pc *) &(ZOMBIE(i)));
 		/* 
 		 * We don't have a destination set, so let's set one +/- 10 squares away. 
 		 */
@@ -553,7 +506,7 @@ void move_zombies(struct game_data *game)
 				ZOMBIE(i).dest_x = ZOMBIE_X(i) + x;
 				ZOMBIE(i).dest_y = ZOMBIE_Y(i) + y;
 
-				ZOMBIE(i).num_nodes = find_path(&ZOMBIE(i), game->level);
+				ZOMBIE(i).num_nodes = zombie_path_search(&ZOMBIE(i), game->level);
 				if (ZOMBIE(i).num_nodes == 0) {
 					ZOMBIE(i).dest_x = 0, ZOMBIE(i).dest_y = 0;
 					i--;
