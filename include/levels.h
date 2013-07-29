@@ -3,11 +3,11 @@
 
 /* Map tile definitions. These are used in the levels/level-*.txt files
  * to make up the levels for the game. */
-#define TILE_FLOOR	'.'
-#define TILE_WALL	'w'
-#define TILE_DOOR	'd'
-#define TILE_EXIT	'e'
-#define TILE_GOODIE	'g'
+#define TILE_FLOOR		'.'
+#define TILE_WALL		'w'
+#define TILE_DOOR		'd'
+#define TILE_EXIT		'e'
+#define TILE_GOODIE		'g'
 #define TILE_UNWALKABLE	'x'
 
 /* Entity type definitions. */

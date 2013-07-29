@@ -150,11 +150,11 @@ int main(int argc, char *argv[])
 	game.camera.h = game.screen_h;
 
 	/* TEMP */
-	game.black = SDL_MapRGB(game.screen->format, 0x00, 0x00, 0x00);
-	game.white = SDL_MapRGB(game.screen->format, 0xff, 0xff, 0xff);
-	game.red = SDL_MapRGB(game.screen->format, 0xcc, 0x00, 0x00);
-	game.blue = SDL_MapRGB(game.screen->format, 0x1f, 0x00, 0xff);
-	game.brown = SDL_MapRGB(game.screen->format, 0x77, 0x54, 0x00);
+	game.black  = SDL_MapRGB(game.screen->format, 0x00, 0x00, 0x00);
+	game.white  = SDL_MapRGB(game.screen->format, 0xff, 0xff, 0xff);
+	game.red    = SDL_MapRGB(game.screen->format, 0xcc, 0x00, 0x00);
+	game.blue   = SDL_MapRGB(game.screen->format, 0x1f, 0x00, 0xff);
+	game.brown  = SDL_MapRGB(game.screen->format, 0x77, 0x54, 0x00);
 	game.yellow = SDL_MapRGB(game.screen->format, 0xFF, 0xFA, 0x00);
 
 	for (;;) {

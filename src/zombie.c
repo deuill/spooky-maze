@@ -99,9 +99,9 @@ int zombie_path_search(struct npc *zombie, char level[LEVEL_H][LEVEL_W])
 
 			/* If we have exceeded our search depth, set current adjacent
 			 * node as destination and move there instead. */
-			if (t < SEARCH_DEPTH - 1)
+			if (t < SEARCH_DEPTH - 1) {
 				t++;
-			else {
+			} else {
 				closed[c].x = x, closed[c].y = y;
 				closed[c].parent = current_node;
 				goto dest_found;

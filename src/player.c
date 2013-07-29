@@ -9,8 +9,8 @@
 
 void player_move(struct game_data *game)
 {
-	SDL_Rect tmp;			/* Used for collision detection. */
-	int move_x, move_y;		/* Used for holding our direction temporarily. */
+	SDL_Rect tmp;				/* Used for collision detection. */
+	int move_x, move_y;			/* Used for holding our direction temporarily. */
 	int x, y, i, position = 1;	/* Position of wall relative to player. */
 
 	/* Protect against incorrect delta-time readings */
